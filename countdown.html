@@ -1,0 +1,1732 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>倒计时 & 时间轴</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #4b3b46;
+      --muted: #9a7f90;
+      --pink: #f57fae;
+      --pink-deep: #e6639c;
+      --yellow: #ffd86f;
+      --yellow-soft: #fff3c8;
+      --line: #f1dce6;
+      --card: rgba(255, 255, 255, 0.9);
+      --shadow: 0 14px 34px rgba(214, 130, 162, 0.12);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      min-height: 100vh;
+      margin: 0;
+      color: var(--ink);
+      font-family: "YouYuan", "幼圆", "Microsoft YaHei UI", "PingFang SC", sans-serif;
+      background:
+        radial-gradient(circle at 8% 4%, rgba(255, 174, 204, 0.42), transparent 26rem),
+        radial-gradient(circle at 94% 8%, rgba(255, 224, 133, 0.44), transparent 24rem),
+        linear-gradient(150deg, #fff6f9 0%, #fff9e9 55%, #ffeaf3 100%);
+      background-attachment: fixed;
+    }
+
+    button, input { font: inherit; }
+
+    .page-shell {
+      width: min(100% - 28px, 760px);
+      margin: 0 auto;
+      padding: 26px 0 42px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .back-link {
+      padding: 8px 12px;
+      border-radius: 12px;
+      color: #b26186;
+      background: rgba(255, 255, 255, 0.7);
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 700;
+      box-shadow: 0 5px 14px rgba(214, 130, 162, 0.08);
+    }
+
+    .page-title {
+      margin: 0 0 20px;
+      color: #d96096;
+      font-size: 26px;
+      letter-spacing: -0.03em;
+    }
+
+    .page-title small {
+      display: block;
+      margin-top: 6px;
+      color: #bd90a6;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0;
+    }
+
+    .card {
+      margin-bottom: 18px;
+      padding: 18px;
+      border: 1px solid rgba(255, 255, 255, 0.92);
+      border-radius: 22px;
+      background: var(--card);
+      box-shadow: var(--shadow);
+    }
+
+    .card-heading {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 13px;
+    }
+
+    .card-heading h2 {
+      margin: 0;
+      color: #c85d8e;
+      font-size: 17px;
+    }
+
+    .card-heading span {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 10px;
+    }
+
+    .field {
+      min-width: 0;
+    }
+
+    .field.full {
+      grid-column: 1 / -1;
+    }
+
+    .field label {
+      display: block;
+      margin: 0 0 6px 2px;
+      color: #a6758c;
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    .field input {
+      width: 100%;
+      height: 43px;
+      padding: 0 12px;
+      border: 1.5px solid #f2dce7;
+      border-radius: 12px;
+      outline: none;
+      color: var(--ink);
+      background: rgba(255, 255, 255, 0.92);
+      transition: border-color 160ms ease, box-shadow 160ms ease, background 160ms ease;
+    }
+
+    .field input:focus {
+      border-color: #ef8db7;
+      background: #fff;
+      box-shadow: 0 0 0 4px rgba(239, 141, 183, 0.13);
+    }
+
+    .pink-button {
+      grid-column: 1 / -1;
+      height: 43px;
+      border: 0;
+      border-radius: 12px;
+      color: #fff;
+      background: linear-gradient(135deg, #f27aa9, #f7a6c8 55%, #ffce6d);
+      box-shadow: 0 8px 18px rgba(223, 103, 155, 0.19);
+      font-weight: 850;
+      cursor: pointer;
+      transition: transform 160ms ease, filter 160ms ease, box-shadow 160ms ease;
+    }
+
+    .pink-button:hover {
+      filter: saturate(1.07);
+      box-shadow: 0 10px 22px rgba(223, 103, 155, 0.24);
+      transform: translateY(-1px);
+    }
+
+    .pink-button:active {
+      transform: translateY(0) scale(0.98);
+    }
+
+    .list {
+      display: grid;
+      gap: 11px;
+    }
+
+    .empty {
+      display: none;
+      padding: 22px 12px;
+      border: 1.5px dashed #f2cdde;
+      border-radius: 14px;
+      color: #ae8196;
+      background: rgba(255, 250, 252, 0.7);
+      font-size: 12px;
+      line-height: 1.6;
+      text-align: center;
+    }
+
+    .empty.is-visible { display: block; }
+
+    .countdown-item {
+      padding: 13px 14px;
+      border: 1px solid #f5dfe9;
+      border-radius: 15px;
+      background: linear-gradient(135deg, #fff4f8, #fffaf0);
+    }
+
+    .countdown-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .countdown-title {
+      overflow: hidden;
+      margin: 0;
+      color: #654b59;
+      font-size: 15px;
+      font-weight: 800;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .delete-button {
+      width: 30px;
+      height: 30px;
+      flex: 0 0 auto;
+      padding: 0;
+      border: 0;
+      border-radius: 10px;
+      color: #ca7898;
+      background: rgba(255, 231, 241, 0.92);
+      cursor: pointer;
+      font-size: 16px;
+      line-height: 1;
+      transition: transform 160ms ease, background 160ms ease;
+    }
+
+    .delete-button:hover {
+      background: #ffdcea;
+      transform: rotate(8deg);
+    }
+
+    .countdown-time {
+      margin-top: 9px;
+      color: #c3618a;
+      font-size: 20px;
+      font-weight: 850;
+      letter-spacing: -0.03em;
+    }
+
+    .countdown-target {
+      margin-top: 5px;
+      color: #b1889b;
+      font-size: 11px;
+    }
+
+    .countdown-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
+      gap: 12px;
+      margin-top: 13px;
+    }
+
+    .countdown-card,
+    .countdown-plus {
+      position: relative;
+      display: flex;
+      min-height: 150px;
+      aspect-ratio: 1 / 1;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 13px;
+      border: 1px solid #f6dfe9;
+      border-radius: 18px;
+      background: linear-gradient(145deg, #fff3f8, #fff9e9 58%, #ffeef5);
+      box-shadow: 0 9px 20px rgba(219, 135, 165, 0.11);
+    }
+
+    .countdown-plus {
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      border: 1.5px dashed #efb6cb;
+      color: #d66f99;
+      background: rgba(255, 250, 252, 0.8);
+      cursor: pointer;
+      transition: transform 160ms ease, background 160ms ease, box-shadow 160ms ease;
+    }
+
+    .countdown-plus:hover {
+      background: #fff1f7;
+      box-shadow: 0 12px 24px rgba(219, 135, 165, 0.15);
+      transform: translateY(-2px);
+    }
+
+    .countdown-plus strong {
+      font-size: 34px;
+      font-weight: 400;
+      line-height: 1;
+    }
+
+    .countdown-plus span {
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .countdown-name {
+      overflow: hidden;
+      padding-right: 24px;
+      color: #654b59;
+      font-size: 14px;
+      font-weight: 850;
+      line-height: 1.35;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .countdown-deadline {
+      margin-top: 8px;
+      color: #b18499;
+      font-size: 11px;
+      line-height: 1.5;
+    }
+
+    .countdown-days {
+      color: #d85f91;
+      font-size: 18px;
+      font-weight: 900;
+      letter-spacing: -0.03em;
+    }
+
+    .countdown-card .delete-button {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+    }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      z-index: 20;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      padding: 14px;
+      background: rgba(91, 58, 74, 0.28);
+      backdrop-filter: blur(4px);
+    }
+
+    .modal[hidden] { display: none; }
+
+    .modal-card {
+      width: min(100%, 440px);
+      padding: 17px;
+      border-radius: 22px;
+      background: #fffafc;
+      box-shadow: 0 20px 50px rgba(90, 52, 70, 0.22);
+    }
+
+    .modal-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 13px;
+    }
+
+    .modal-head h3 {
+      margin: 0;
+      color: #c85d8e;
+      font-size: 16px;
+    }
+
+    .modal-close {
+      width: 30px;
+      height: 30px;
+      padding: 0;
+      border: 0;
+      border-radius: 10px;
+      color: #c37392;
+      background: #ffe9f2;
+      cursor: pointer;
+      font-size: 20px;
+      line-height: 1;
+    }
+    .timeline-calendar {
+      position: relative;
+    }
+
+    .timeline-playhead {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 110px;
+      z-index: 5;
+      width: 2px;
+      border-radius: 99px;
+      background: linear-gradient(180deg, #f17ca9, #ffd169);
+      box-shadow: 0 0 10px rgba(234, 102, 156, 0.55);
+      pointer-events: none;
+    }
+
+    .timeline-playhead::before {
+      position: absolute;
+      top: 5px;
+      left: 50%;
+      width: 10px;
+      height: 10px;
+      border: 2px solid #fff;
+      border-radius: 50%;
+      background: #f17ca9;
+      content: "";
+      transform: translateX(-50%);
+    }
+    .timeline-today-line {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      z-index: 4;
+      width: 2px;
+      border-radius: 99px;
+      background: linear-gradient(180deg, #f17ca9, #ffd169);
+      box-shadow: 0 0 10px rgba(234, 102, 156, 0.55);
+      pointer-events: none;
+    }
+
+    .timeline-today-line::before {
+      position: absolute;
+      top: 6px;
+      left: 50%;
+      padding: 2px 5px;
+      border-radius: 99px;
+      color: #fff;
+      background: #f17ca9;
+      content: "今天";
+      font-size: 9px;
+      line-height: 1;
+      transform: translateX(-50%);
+    }
+    .timeline-actions {
+      display: none;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 0 2px;
+    }
+
+    .timeline-actions.is-visible {
+      display: flex;
+    }
+
+    .timeline-playhead {
+      top: 52px;
+    }
+    .timeline-rows-area {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .timeline-rows-area .timeline-playhead {
+      top: 0;
+      bottom: 0;
+      height: auto;
+    }
+    .timeline-scroll {
+      margin-top: 13px;
+      overflow-x: auto;
+      border: 1px solid #f5dfe8;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.78);
+      box-shadow: 0 8px 20px rgba(214, 130, 162, 0.08);
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .timeline-calendar {
+      width: fit-content;
+      min-width: 100%;
+    }
+
+    .timeline-axis,
+    .timeline-row {
+      display: grid;
+      align-items: stretch;
+    }
+
+    .timeline-axis-label,
+    .timeline-row-label {
+      position: sticky;
+      left: 0;
+      z-index: 2;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 86px;
+      border-right: 1px solid #f2dce6;
+      background: #fff7fb;
+      color: #ad7890;
+      font-size: 11px;
+      font-weight: 850;
+      text-align: center;
+    }
+
+    .timeline-row-label {
+      background: #fffdf9;
+      color: #6c5361;
+      word-break: break-all;
+    }
+
+    .timeline-axis-days {
+      display: flex;
+      min-width: 100%;
+      background: #fff1f7;
+    }
+
+    .timeline-day {
+      width: 34px;
+      flex: 0 0 34px;
+      padding: 8px 0 7px;
+      border-left: 1px solid #f6dfe9;
+      color: #b17c95;
+      font-size: 10px;
+      line-height: 1.25;
+      text-align: center;
+    }
+
+    .timeline-day small {
+      display: block;
+      margin-top: 2px;
+      color: #d09db0;
+      font-size: 8px;
+    }
+
+    .timeline-row-track {
+      overflow: hidden;
+    }
+
+    .timeline-row-playhead {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      z-index: 6;
+      width: 2px;
+      border-radius: 99px;
+      background: linear-gradient(180deg, #f17ca9, #ffd169);
+      box-shadow: 0 0 10px rgba(234, 102, 156, 0.55);
+      pointer-events: none;
+    }
+    .timeline-row-track {
+      position: relative;
+      min-width: 100%;
+      height: 46px;
+      background: repeating-linear-gradient(to right, rgba(246, 223, 233, 0.45) 0 1px, transparent 1px 34px);
+    }
+
+    .timeline-bar {
+      position: absolute;
+      top: 8px;
+      height: 30px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.88);
+      border-radius: 9px;
+      background: linear-gradient(135deg, #fff4f8, #fff8e8);
+      box-shadow: 0 5px 12px rgba(220, 132, 165, 0.13);
+    }
+
+    .timeline-bar-fill {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      width: 0;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #f27ea9, #ffb26f 58%, #ffd769);
+      opacity: 0.82;
+    }
+
+    .timeline-bar-label {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      padding: 0 8px;
+      color: #734e60;
+      font-size: 10px;
+      font-weight: 850;
+      white-space: nowrap;
+    }
+    .timeline-item {
+      padding: 13px 14px;
+      border: 1px solid #f2e4c8;
+      border-radius: 15px;
+      background: linear-gradient(135deg, #fffaf2, #fff3f8);
+    }
+
+    .timeline-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .timeline-title {
+      overflow: hidden;
+      margin: 0;
+      color: #654b59;
+      font-size: 14px;
+      font-weight: 800;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .timeline-percent {
+      flex: 0 0 auto;
+      color: #d96b95;
+      font-size: 12px;
+      font-weight: 850;
+    }
+
+    .timeline-dates {
+      margin-top: 5px;
+      color: #ad8597;
+      font-size: 11px;
+    }
+
+    .progress-track {
+      position: relative;
+      height: 11px;
+      margin-top: 11px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.85);
+      border-radius: 99px;
+      background: #fff0c4;
+      box-shadow: inset 0 1px 3px rgba(199, 152, 57, 0.09);
+    }
+
+    .progress-fill {
+      display: block;
+      width: 0;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #f37fa9, #ffb26f 58%, #ffd769);
+      box-shadow: 0 0 10px rgba(240, 125, 154, 0.28);
+      transition: width 420ms cubic-bezier(.22, 1, .36, 1);
+    }
+
+    .progress-label {
+      margin-top: 6px;
+      color: #b18599;
+      font-size: 10px;
+      text-align: right;
+    }
+
+    .countdown-grid {
+      grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+      gap: 10px;
+    }
+
+    .countdown-card,
+    .countdown-plus {
+      min-height: 112px;
+      padding: 11px;
+      border-radius: 15px;
+    }
+
+    .countdown-plus strong { font-size: 27px; }
+    .countdown-plus span { font-size: 11px; }
+    .countdown-name { padding-right: 20px; font-size: 12px; }
+    .countdown-deadline { font-size: 10px; }
+    .countdown-days { font-size: 15px; }
+    .countdown-card .delete-button { top: 6px; right: 6px; width: 26px; height: 26px; font-size: 14px; }
+
+    .timeline-axis-label,
+    .timeline-row-label {
+      min-width: 110px;
+      font-size: 12px;
+    }
+
+    .timeline-day {
+      width: 52px;
+      flex: 0 0 52px;
+      padding: 12px 0 10px;
+      font-size: 13px;
+    }
+
+    .timeline-day small { margin-top: 3px; font-size: 10px; }
+    .timeline-row-track {
+      overflow: hidden;
+    }
+
+    .timeline-row-playhead {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      z-index: 6;
+      width: 2px;
+      border-radius: 99px;
+      background: linear-gradient(180deg, #f17ca9, #ffd169);
+      box-shadow: 0 0 10px rgba(234, 102, 156, 0.55);
+      pointer-events: none;
+    }
+    .timeline-row-track {
+      height: 78px;
+      background: repeating-linear-gradient(to right, rgba(246, 223, 233, 0.45) 0 1px, transparent 1px 52px);
+    }
+
+    .timeline-bar { top: 12px; height: 52px; border-radius: 14px; }
+    .timeline-bar-label { padding: 0 12px; font-size: 13px; }
+    .timeline-row-label { min-height: 78px; font-size: 13px; }
+    input[type="date"],
+    input[type="datetime-local"] {
+      color: #c75e8d;
+      background: linear-gradient(135deg, #fff6fa, #fffbf0);
+      transition: transform 180ms cubic-bezier(.2, .9, .35, 1.35), border-color 160ms ease, box-shadow 160ms ease, background 160ms ease;
+    }
+
+    input[type="date"]:focus,
+    input[type="datetime-local"]:focus {
+      background: #fff;
+      transform: scale(1.015);
+    }
+
+    input[type="date"]::-webkit-calendar-picker-indicator,
+    input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+      cursor: pointer;
+      filter: invert(57%) sepia(55%) saturate(1100%) hue-rotate(293deg);
+      transition: transform 220ms cubic-bezier(.2, .9, .35, 1.5);
+    }
+
+    input[type="date"]:hover::-webkit-calendar-picker-indicator,
+    input[type="datetime-local"]:hover::-webkit-calendar-picker-indicator {
+      transform: scale(1.18) rotate(-6deg);
+    }
+
+    input[type="date"]:focus::-webkit-calendar-picker-indicator,
+    input[type="datetime-local"]:focus::-webkit-calendar-picker-indicator {
+      animation: calendarIconPop 360ms cubic-bezier(.2, .9, .3, 1.3);
+    }
+
+    @keyframes calendarIconPop {
+      0% { transform: scale(0.8) rotate(-10deg); }
+      65% { transform: scale(1.3) rotate(8deg); }
+      100% { transform: scale(1.12) rotate(0deg); }
+    }
+    .date-picker-card {
+      width: min(100%, 380px);
+      padding: 16px;
+      border-radius: 24px;
+      background: linear-gradient(150deg, #fff4f9, #fff9ec 55%, #ffeef5);
+      box-shadow: 0 22px 55px rgba(151, 76, 112, 0.25);
+    }
+
+    .date-picker-deco {
+      margin-bottom: 8px;
+      color: #e46b9d;
+      font-size: 15px;
+      text-align: center;
+    }
+
+    .date-picker-deco span {
+      color: #ffb3ce;
+      animation: heartFloat 1.8s ease-in-out infinite;
+    }
+
+    @keyframes heartFloat {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-3px); }
+    }
+
+    .date-picker-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin: 4px 0 12px;
+    }
+
+    .date-picker-head strong {
+      color: #c85d8e;
+      font-size: 16px;
+    }
+
+    .date-picker-nav {
+      display: grid;
+      width: 34px;
+      height: 34px;
+      padding: 0;
+      border: 0;
+      border-radius: 12px;
+      color: #fff;
+      background: linear-gradient(135deg, #f17ca9, #ffc46f);
+      box-shadow: 0 6px 13px rgba(223, 103, 155, 0.2);
+      cursor: pointer;
+      font-size: 22px;
+      place-items: center;
+      transition: transform 180ms cubic-bezier(.2, .9, .35, 1.3);
+    }
+
+    .date-picker-nav:active {
+      transform: scale(0.88) rotate(-6deg);
+    }
+
+    .date-picker-week,
+    .date-picker-days {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 5px;
+    }
+
+    .date-picker-week {
+      margin-bottom: 6px;
+      color: #b7819b;
+      font-size: 11px;
+      font-weight: 850;
+      text-align: center;
+    }
+
+    .date-picker-day {
+      height: 38px;
+      border: 0;
+      border-radius: 12px;
+      color: #6b5261;
+      background: rgba(255, 255, 255, 0.78);
+      cursor: pointer;
+      font-weight: 750;
+      transition: transform 180ms cubic-bezier(.2, .9, .35, 1.4), background 150ms ease, color 150ms ease, box-shadow 150ms ease;
+    }
+
+    .date-picker-day:hover {
+      background: #ffe5f0;
+      transform: scale(1.08) rotate(-2deg);
+    }
+
+    .date-picker-day.is-muted {
+      color: #cfb5c1;
+      background: transparent;
+    }
+
+    .date-picker-day.is-selected {
+      color: #fff;
+      background: linear-gradient(135deg, #f17ca9, #ffb46f);
+      box-shadow: 0 6px 13px rgba(223, 103, 155, 0.24);
+      transform: scale(1.04);
+    }
+
+    .date-picker-time {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      margin-top: 12px;
+    }
+
+    .date-picker-time label {
+      color: #b06c8d;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .date-picker-time input {
+      height: 38px;
+      padding: 0 10px;
+      border: 1.5px solid #f2c8d8;
+      border-radius: 12px;
+      color: #c75e8d;
+      background: #fff;
+      outline: none;
+    }
+
+    .date-picker-buttons {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .date-picker-cancel,
+    .date-picker-confirm {
+      height: 38px;
+      padding: 0 14px;
+      border: 0;
+      border-radius: 12px;
+      font-weight: 850;
+      cursor: pointer;
+    }
+
+    .date-picker-cancel {
+      color: #b17991;
+      background: #f1e8ed;
+    }
+
+    .date-picker-confirm {
+      color: #fff;
+      background: linear-gradient(135deg, #f17ca9, #ffb46f);
+      box-shadow: 0 7px 15px rgba(223, 103, 155, 0.2);
+    }
+    input[data-picker] {
+      cursor: pointer;
+      padding-right: 38px;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect x='4' y='5.5' width='16' height='14' rx='3' fill='none' stroke='%23e76e9f' stroke-width='1.8'/%3E%3Cpath d='M8 3.5v4M16 3.5v4M4 10h16' fill='none' stroke='%23e76e9f' stroke-width='1.8' stroke-linecap='round'/%3E%3Cpath d='M12 14.2c.9-.7 2.2-.4 2.8.5.6-1 2-.9 2.5-.1.6.9.3 2.1-.7 2.7L12 20l-4.6-2.7c-1-.6-1.3-1.8-.7-2.7.5-.8 1.9-.9 2.5.1.6-.9 1.9-1.2 2.8-.5Z' fill='%23ff9cc1'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+      background-size: 19px 19px;
+    }
+
+    input[data-picker]:focus {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect x='4' y='5.5' width='16' height='14' rx='3' fill='none' stroke='%23e04f8b' stroke-width='1.8'/%3E%3Cpath d='M8 3.5v4M16 3.5v4M4 10h16' fill='none' stroke='%23e04f8b' stroke-width='1.8' stroke-linecap='round'/%3E%3Cpath d='M12 14.2c.9-.7 2.2-.4 2.8.5.6-1 2-.9 2.5-.1.6.9.3 2.1-.7 2.7L12 20l-4.6-2.7c-1-.6-1.3-1.8-.7-2.7.5-.8 1.9-.9 2.5.1.6-.9 1.9-1.2 2.8-.5Z' fill='%23ff7fb1'/%3E%3C/svg%3E");
+    }
+    @media (max-width: 560px) {
+      .form-grid { grid-template-columns: 1fr; }
+      .field.full { grid-column: auto; }
+      .pink-button { grid-column: auto; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page-shell">
+    <div class="topbar">
+      <a class="back-link" href="index.html">← 返回打卡</a>
+      <span>✨ 粉黄计划本</span>
+    </div>
+
+    <h1 class="page-title">
+      倒计时 & 时间轴
+      <small>把重要日子和长期计划都装进去吧</small>
+    </h1>
+
+    <section class="card" aria-label="倒计时">
+      <div class="card-heading">
+        <h2>⏳ 倒计时</h2>
+        <span>点击 + 添加</span>
+      </div>
+      <div id="countdownGrid" class="countdown-grid"></div>
+    </section>
+
+    <div id="countdownModal" class="modal" hidden>
+      <div class="modal-card">
+        <div class="modal-head">
+          <h3>添加倒计时</h3>
+          <button id="closeCountdownModal" class="modal-close" type="button" aria-label="关闭">×</button>
+        </div>
+        <form id="countdownForm" class="form-grid">
+          <div class="field full">
+            <label for="countdownTitle">名称</label>
+            <input id="countdownTitle" type="text" maxlength="20" placeholder="例如：四级考试">
+          </div>
+          <div class="field full">
+            <label for="countdownTarget">目标日期和时间</label>
+            <input id="countdownTarget" type="text" readonly data-picker="datetime" placeholder="选择日期和时间" autocomplete="off">
+          </div>
+          <button class="pink-button" type="submit">保存倒计时</button>
+        </form>
+      </div>
+    </div>
+
+    <div id="actionSheet" class="action-sheet-popover" hidden>
+      <div class="modal-card">
+        <div class="modal-head">
+          <h3>更多操作</h3>
+          <button id="closeActionSheet" class="modal-close" type="button" aria-label="关闭">×</button>
+        </div>
+        <div id="actionList" class="action-list"></div>
+      </div>
+    </div>
+
+    <div id="editModal" class="modal" hidden>
+      <div class="modal-card">
+        <div class="modal-head">
+          <h3 id="editModalTitle">编辑</h3>
+          <button id="closeEditModal" class="modal-close" type="button" aria-label="关闭">×</button>
+        </div>
+        <form id="editForm" class="form-grid">
+          <div class="field full">
+            <label for="editTitle">名称</label>
+            <input id="editTitle" type="text" maxlength="20">
+          </div>
+          <div class="field full" id="editTargetField">
+            <label for="editTarget">目标日期和时间</label>
+            <input id="editTarget" type="text" readonly data-picker="datetime" placeholder="选择日期和时间" autocomplete="off">
+          </div>
+          <div class="field" id="editStartField">
+            <label for="editStart">开始日期</label>
+            <input id="editStart" type="text" readonly data-picker="date" placeholder="选择日期" autocomplete="off">
+          </div>
+          <div class="field" id="editEndField">
+            <label for="editEnd">结束日期</label>
+            <input id="editEnd" type="text" readonly data-picker="date" placeholder="选择日期" autocomplete="off">
+          </div>
+          <button class="pink-button" type="submit">保存修改</button>
+        </form>
+      </div>
+    </div>
+    <div id="datePickerModal" class="modal" hidden>
+      <div class="date-picker-card">
+        <div class="date-picker-deco">🐱 <span>♥</span></div>
+        <div class="date-picker-head">
+          <button id="pickerPrev" class="date-picker-nav" type="button">‹</button>
+          <strong id="pickerTitle">2026年9月</strong>
+          <button id="pickerNext" class="date-picker-nav" type="button">›</button>
+        </div>
+        <div class="date-picker-week">
+          <span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span>
+        </div>
+        <div id="pickerDays" class="date-picker-days"></div>
+        <div id="pickerTimeRow" class="date-picker-time" hidden>
+          <label for="pickerTime">时间</label>
+          <input id="pickerTime" type="time">
+        </div>
+        <div class="date-picker-buttons">
+          <button id="pickerCancel" class="date-picker-cancel" type="button">取消</button>
+          <button id="pickerConfirm" class="date-picker-confirm" type="button">选好啦</button>
+        </div>
+      </div>
+    </div>
+    <section class="card" aria-label="时间轴">
+      <div class="card-heading">
+        <h2>📊 时间轴进度</h2>
+        <span>从今天开始计算</span>
+      </div>
+      <div id="timelineScroll" class="timeline-scroll"></div>
+      <div id="timelineEmpty" class="empty">还没有时间轴，添加一个计划开始追踪吧。</div>
+      <form id="timelineForm" class="form-grid" style="margin-top: 14px;">
+        <div class="field full">
+          <label for="timelineTitle">计划名称</label>
+          <input id="timelineTitle" type="text" maxlength="20" placeholder="例如：四级备考">
+        </div>
+        <div class="field">
+          <label for="timelineStart">开始日期</label>
+          <input id="timelineStart" type="text" readonly data-picker="date" placeholder="选择日期" autocomplete="off">
+        </div>
+        <div class="field">
+          <label for="timelineEnd">结束日期</label>
+          <input id="timelineEnd" type="text" readonly data-picker="date" placeholder="选择日期" autocomplete="off">
+        </div>
+        <button class="pink-button" type="submit">添加时间轴</button>
+      </form>
+    </section>
+  </div>
+
+  <script>
+    (() => {
+      "use strict";
+
+      const COUNTDOWN_KEY = "cute-countdown:v1";
+      const TIMELINE_KEY = "cute-timeline:v1";
+
+      const elements = {
+        countdownForm: document.getElementById("countdownForm"),
+        countdownTitle: document.getElementById("countdownTitle"),
+        countdownTarget: document.getElementById("countdownTarget"),
+        countdownGrid: document.getElementById("countdownGrid"),
+        countdownModal: document.getElementById("countdownModal"),
+        closeCountdownModal: document.getElementById("closeCountdownModal"),
+        timelineForm: document.getElementById("timelineForm"),
+        timelineTitle: document.getElementById("timelineTitle"),
+        timelineStart: document.getElementById("timelineStart"),
+        timelineEnd: document.getElementById("timelineEnd"),
+        timelineScroll: document.getElementById("timelineScroll"),
+        timelineEmpty: document.getElementById("timelineEmpty"),
+        actionSheet: document.getElementById("actionSheet"),
+        actionList: document.getElementById("actionList"),
+        closeActionSheet: document.getElementById("closeActionSheet"),
+        editModal: document.getElementById("editModal"),
+        editModalTitle: document.getElementById("editModalTitle"),
+        editForm: document.getElementById("editForm"),
+        editTitle: document.getElementById("editTitle"),
+        editTarget: document.getElementById("editTarget"),
+        editTargetField: document.getElementById("editTargetField"),
+        editStart: document.getElementById("editStart"),
+        editStartField: document.getElementById("editStartField"),
+        editEnd: document.getElementById("editEnd"),
+        editEndField: document.getElementById("editEndField"),
+        closeEditModal: document.getElementById("closeEditModal"),
+        datePickerModal: document.getElementById("datePickerModal"),
+        pickerPrev: document.getElementById("pickerPrev"),
+        pickerNext: document.getElementById("pickerNext"),
+        pickerTitle: document.getElementById("pickerTitle"),
+        pickerDays: document.getElementById("pickerDays"),
+        pickerTimeRow: document.getElementById("pickerTimeRow"),
+        pickerTime: document.getElementById("pickerTime"),
+        pickerCancel: document.getElementById("pickerCancel"),
+        pickerConfirm: document.getElementById("pickerConfirm")
+      };
+
+      function createId(prefix) {
+        if (window.crypto && typeof window.crypto.randomUUID === "function") {
+          return `${prefix}-${window.crypto.randomUUID()}`;
+        }
+        return `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+      }
+
+      function loadData(key, fallback) {
+        try {
+          const saved = localStorage.getItem(key);
+          return saved ? JSON.parse(saved) : fallback;
+        } catch (error) {
+          return fallback;
+        }
+      }
+
+      function persistData(key, value) {
+        try {
+          localStorage.setItem(key, JSON.stringify(value));
+        } catch (error) {
+          window.alert("浏览器无法保存数据。");
+        }
+      }
+
+      function formatDateTime(value) {
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) return "";
+        return `${date.getMonth() + 1}月${date.getDate()}日 ${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
+      }
+
+      function formatDate(value) {
+        const date = new Date(`${value}T00:00:00`);
+        if (Number.isNaN(date.getTime())) return "";
+        return `${date.getMonth() + 1}月${date.getDate()}日`;
+      }
+
+      function startOfToday() {
+        const now = new Date();
+        now.setHours(0, 0, 0, 0);
+        return now;
+      }
+
+      function toDateInputValue(date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const day = String(date.getDate()).padStart(2, "0");
+        return `${year}-${month}-${day}`;
+      }
+
+      function toDateTimeInputValue(date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const day = String(date.getDate()).padStart(2, "0");
+        const hours = String(date.getHours()).padStart(2, "0");
+        const minutes = String(date.getMinutes()).padStart(2, "0");
+        return `${year}-${month}-${day}T${hours}:${minutes}`;
+      }
+
+      function createDeleteButton(action, id, label) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "delete-button";
+        button.dataset.action = action;
+        button.dataset.id = id;
+        button.setAttribute("aria-label", label);
+        button.title = label;
+        button.textContent = "×";
+        return button;
+      }
+
+      function renderCountdowns() {
+        const items = loadData(COUNTDOWN_KEY, []);
+        elements.countdownGrid.replaceChildren();
+
+        items.forEach((item) => {
+          const target = new Date(item.target);
+          const diff = target - new Date();
+          const card = document.createElement("article");
+          card.className = "countdown-card";
+
+          const name = document.createElement("div");
+          name.className = "countdown-name";
+          name.textContent = item.title;
+          name.title = item.title;
+
+          const deadline = document.createElement("div");
+          deadline.className = "countdown-deadline";
+          deadline.textContent = `截止：${formatDateTime(item.target)}`;
+
+          const days = document.createElement("div");
+          days.className = "countdown-days";
+          if (Number.isNaN(target.getTime())) {
+            days.textContent = "日期无效";
+          } else if (diff <= 0) {
+            days.textContent = "已结束";
+          } else {
+            days.textContent = `还剩 ${Math.ceil(diff / 86400000)} 天`;
+          }
+
+          card.addEventListener("click", (event) => {
+            if (event.target.closest(".delete-button")) return;
+            openActionSheet("countdown", item.id, event.currentTarget);
+          });          card.append(name, deadline, days, createDeleteButton("delete-countdown", item.id, `删除${item.title}`));
+          elements.countdownGrid.append(card);
+        });
+
+        const addCard = document.createElement("button");
+        addCard.type = "button";
+        addCard.className = "countdown-plus";
+        addCard.setAttribute("aria-label", "添加倒计时");
+        const plus = document.createElement("strong");
+        plus.textContent = "+";
+        const label = document.createElement("span");
+        label.textContent = "添加倒计时";
+        addCard.append(plus, label);
+        addCard.addEventListener("click", () => {
+          elements.countdownModal.hidden = false;
+          elements.countdownTitle.focus();
+        });
+        elements.countdownGrid.append(addCard);
+      }      function renderTimelines() {
+        const items = loadData(TIMELINE_KEY, []);
+        elements.timelineScroll.replaceChildren();
+        elements.timelineEmpty.classList.toggle("is-visible", items.length === 0);
+
+        if (!items.length) return;
+
+        const today = startOfToday();
+        const maxEnd = new Date(Math.max(...items.map((item) => new Date(`${item.end}T00:00:00`).getTime())));
+        const rangeStart = today;
+        const rangeEnd = new Date(Math.max(maxEnd.getTime(), today.getTime() + 30 * 86400000));
+        const dayCount = Math.floor((rangeEnd - rangeStart) / 86400000) + 1;
+        const dayWidth = 52;
+
+        const calendar = document.createElement("div");
+        calendar.className = "timeline-calendar";
+
+        const axis = document.createElement("div");
+        axis.className = "timeline-axis";
+        axis.style.gridTemplateColumns = `110px ${dayCount * dayWidth}px`;
+        const axisLabel = document.createElement("div");
+        axisLabel.className = "timeline-axis-label";
+        axisLabel.textContent = "日期";
+        const axisDays = document.createElement("div");
+        axisDays.className = "timeline-axis-days";
+
+        for (let offset = 0; offset < dayCount; offset += 1) {
+          const date = new Date(rangeStart);
+          date.setDate(rangeStart.getDate() + offset);
+          const day = document.createElement("span");
+          day.className = "timeline-day";
+          day.textContent = `${date.getMonth() + 1}/${date.getDate()}`;
+          const week = document.createElement("small");
+          week.textContent = "日一二三四五六"[date.getDay()];
+          day.append(week);
+          axisDays.append(day);
+        }
+
+        axis.append(axisLabel, axisDays);
+        calendar.append(axis);
+        const rowsContainer = document.createElement("div");
+        rowsContainer.className = "timeline-rows-area";
+        calendar.append(rowsContainer);
+
+        items.slice().sort((a, b) => new Date(`${a.start}T00:00:00`) - new Date(`${b.start}T00:00:00`)).forEach((item) => {
+          const start = new Date(`${item.start}T00:00:00`);
+          const end = new Date(`${item.end}T00:00:00`);
+          const total = end - start;
+          let percent = 0;
+
+          if (!Number.isNaN(start.getTime()) && !Number.isNaN(end.getTime()) && total > 0) {
+            if (today > end) percent = 100;
+            else if (today >= start) percent = Math.round(((today - start) / total) * 100);
+          }
+
+          const effectiveStart = start < rangeStart ? rangeStart : start;
+          const leftDays = Math.max(0, Math.floor((effectiveStart - rangeStart) / 86400000));
+          const durationDays = Math.max(1, Math.floor((end - effectiveStart) / 86400000) + 1);
+          const left = leftDays * dayWidth;
+          const width = Math.max(dayWidth, durationDays * dayWidth - 4);
+
+          const row = document.createElement("div");
+          row.className = "timeline-row";
+          row.style.gridTemplateColumns = `110px ${dayCount * dayWidth}px`;
+
+          const label = document.createElement("div");
+          label.className = "timeline-row-label";
+          label.textContent = item.title;
+          label.title = item.title;
+
+          const track = document.createElement("div");
+          track.className = "timeline-row-track";
+
+          const bar = document.createElement("div");
+          bar.className = "timeline-bar";
+          bar.style.left = `${left}px`;
+          bar.style.width = `${width}px`;
+
+          const fill = document.createElement("span");
+          fill.className = "timeline-bar-fill";
+          fill.style.width = `${percent}%`;
+
+          const barLabel = document.createElement("span");
+          barLabel.className = "timeline-bar-label";
+          barLabel.textContent = `${item.title} · ${percent}%`;
+
+          bar.addEventListener("click", (event) => {
+            event.stopPropagation();
+            const shouldShow = !actionRow.classList.contains("is-visible");
+            document.querySelectorAll(".timeline-actions").forEach((row) => row.classList.remove("is-visible"));
+            if (shouldShow) actionRow.classList.add("is-visible");
+          });          bar.append(fill, barLabel);
+          track.append(bar);
+          row.append(label, track);
+          rowsContainer.append(row);
+          const actionRow = document.createElement("div");
+          actionRow.className = "timeline-actions";
+          actionRow.style.marginLeft = "110px";
+          const actionDefs = [
+            ["rename", "✏️"],
+            ["edit-time", "📅"],
+            ["shift-left", "◀"],
+            ["shift-right", "▶"],
+            ["delete", "×", true]
+          ];
+          actionDefs.forEach(([action, icon, danger]) => {
+            const actionButton = document.createElement("button");
+            actionButton.type = "button";
+            actionButton.className = `timeline-action-button${danger ? " danger" : ""}`;
+            actionButton.textContent = icon;
+            actionButton.setAttribute("aria-label", action);
+            actionButton.addEventListener("click", (clickEvent) => {
+              clickEvent.stopPropagation();
+              selectedActionItem = { type: "timeline", id: item.id };
+              handleSelectedAction(action);
+            });
+            actionRow.append(actionButton);
+          });
+          calendar.append(actionRow);
+
+        });
+
+        elements.timelineScroll.append(calendar);
+        const playhead = document.createElement("div");
+        playhead.className = "timeline-playhead";
+        rowsContainer.append(playhead);
+
+
+      }      let selectedActionItem = null;
+      let selectedEditItem = null;
+
+      function findCountdownItem(id) {
+        return loadData(COUNTDOWN_KEY, []).find((item) => item.id === id) || null;
+      }
+
+      function findTimelineItem(id) {
+        return loadData(TIMELINE_KEY, []).find((item) => item.id === id) || null;
+      }
+
+      function createActionButton(label, action, danger = false) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = `action-button${danger ? " danger" : ""}`;
+        button.dataset.action = action;
+        button.textContent = label;
+        return button;
+      }
+
+      function openActionSheet(type, id, anchor = null) {
+        selectedActionItem = { type, id };
+        elements.actionList.replaceChildren();
+
+        elements.actionList.append(
+          createActionButton("✏️ 重命名", "rename"),
+          createActionButton(type === "countdown" ? "🕒 修改目标时间" : "📅 修改时间", "edit-time")
+        );
+
+        if (type === "countdown") {
+          elements.actionList.append(
+            createActionButton("◀ 向前移动", "move-up"),
+            createActionButton("向后移动 ▶", "move-down")
+          );
+        } else {
+          elements.actionList.append(
+            createActionButton("◀ 整体前移1天", "shift-left"),
+            createActionButton("整体后移1天 ▶", "shift-right")
+          );
+        }
+
+        elements.actionList.append(createActionButton("🗑️ 删除", "delete", true));
+        elements.actionSheet.hidden = false;
+        if (anchor) {
+          const sheet = elements.actionSheet;
+          const anchorRect = anchor.getBoundingClientRect();
+          const sheetRect = sheet.getBoundingClientRect();
+          let left = anchorRect.left;
+          let top = anchorRect.bottom + 8;
+          if (left + sheetRect.width > window.innerWidth - 8) left = window.innerWidth - sheetRect.width - 8;
+          if (top < 8) top = 8;
+          sheet.style.left = `${left}px`;
+          sheet.style.top = `${top}px`;
+        }
+      }
+
+      function closeActionSheet() {
+        elements.actionSheet.hidden = true;
+        selectedActionItem = null;
+      }
+
+      function shiftDateString(dateString, dayOffset) {
+        const date = new Date(`${dateString}T00:00:00`);
+        date.setDate(date.getDate() + dayOffset);
+        return toDateInputValue(date);
+      }
+
+      function handleSelectedAction(action) {
+        const selected = selectedActionItem;
+        if (!selected) return;
+        const { type, id } = selected;
+
+        if (action === "delete") {
+          const item = type === "countdown" ? findCountdownItem(id) : findTimelineItem(id);
+          if (!item) return closeActionSheet();
+          const confirmed = window.confirm(`确定删除“${item.title}”吗？`);
+          if (!confirmed) return closeActionSheet();
+          const key = type === "countdown" ? COUNTDOWN_KEY : TIMELINE_KEY;
+          persistData(key, loadData(key, []).filter((entry) => entry.id !== id));
+          closeActionSheet();
+          if (type === "countdown") renderCountdowns();
+          else renderTimelines();
+          return;
+        }
+
+        if (action === "rename" || action === "edit-time") {
+          closeActionSheet();
+          openEditModal(type, id, action === "rename");
+          return;
+        }
+
+        if (type === "countdown" && (action === "move-up" || action === "move-down")) {
+          const items = loadData(COUNTDOWN_KEY, []);
+          const index = items.findIndex((entry) => entry.id === id);
+          const nextIndex = action === "move-up" ? index - 1 : index + 1;
+          if (index < 0 || nextIndex < 0 || nextIndex >= items.length) return closeActionSheet();
+          const [moved] = items.splice(index, 1);
+          items.splice(nextIndex, 0, moved);
+          persistData(COUNTDOWN_KEY, items);
+          closeActionSheet();
+          renderCountdowns();
+          return;
+        }
+
+        if (type === "timeline" && (action === "shift-left" || action === "shift-right")) {
+          const items = loadData(TIMELINE_KEY, []);
+          const item = items.find((entry) => entry.id === id);
+          if (!item) return closeActionSheet();
+          const offset = action === "shift-left" ? -1 : 1;
+          item.start = shiftDateString(item.start, offset);
+          item.end = shiftDateString(item.end, offset);
+          persistData(TIMELINE_KEY, items);
+          closeActionSheet();
+          renderTimelines();
+        }
+      }
+
+      function openEditModal(type, id, focusTitle) {
+        const item = type === "countdown" ? findCountdownItem(id) : findTimelineItem(id);
+        if (!item) return;
+        selectedEditItem = { type, id };
+        elements.editModalTitle.textContent = type === "countdown" ? "编辑倒计时" : "编辑时间轴";
+        elements.editTitle.value = item.title;
+
+        const isCountdown = type === "countdown";
+        elements.editTargetField.hidden = !isCountdown;
+        elements.editStartField.hidden = isCountdown;
+        elements.editEndField.hidden = isCountdown;
+
+        if (isCountdown) elements.editTarget.value = item.target;
+        else {
+          elements.editStart.value = item.start;
+          elements.editEnd.value = item.end;
+        }
+
+        elements.editModal.hidden = false;
+        if (focusTitle) elements.editTitle.focus();
+        else if (isCountdown) elements.editTarget.focus();
+        else elements.editStart.focus();
+      }
+
+      elements.actionList.addEventListener("click", (event) => {
+        const button = event.target.closest("button[data-action]");
+        if (button) handleSelectedAction(button.dataset.action);
+      });
+
+      elements.closeActionSheet.addEventListener("click", closeActionSheet);
+      elements.closeEditModal.addEventListener("click", () => {
+        elements.editModal.hidden = true;
+        selectedEditItem = null;
+      });
+
+      elements.editForm.addEventListener("submit", (event) => {
+        event.preventDefault();
+        if (!selectedEditItem) return;
+        const { type, id } = selectedEditItem;
+        const title = elements.editTitle.value.trim();
+        if (!title) {
+          elements.editTitle.focus();
+          return;
+        }
+
+        if (type === "countdown") {
+          const target = elements.editTarget.value;
+          if (!target) return;
+          const items = loadData(COUNTDOWN_KEY, []);
+          const item = items.find((entry) => entry.id === id);
+          if (!item) return;
+          item.title = title;
+          item.target = target;
+          persistData(COUNTDOWN_KEY, items);
+          elements.editModal.hidden = true;
+          selectedEditItem = null;
+          renderCountdowns();
+        } else {
+          const start = elements.editStart.value;
+          const end = elements.editEnd.value;
+          if (!start || !end) return;
+          if (new Date(`${end}T00:00:00`) < new Date(`${start}T00:00:00`)) {
+            window.alert("结束日期不能早于开始日期。");
+            return;
+          }
+          const items = loadData(TIMELINE_KEY, []);
+          const item = items.find((entry) => entry.id === id);
+          if (!item) return;
+          item.title = title;
+          item.start = start;
+          item.end = end;
+          persistData(TIMELINE_KEY, items);
+          elements.editModal.hidden = true;
+          selectedEditItem = null;
+          renderTimelines();
+        }
+      });
+      const datePickerState = {
+        fieldId: null,
+        type: "date",
+        year: new Date().getFullYear(),
+        month: new Date().getMonth(),
+        selectedDate: null,
+        selectedTime: "09:00"
+      };
+
+      function parsePickerValue(fieldId, type) {
+        const input = document.getElementById(fieldId);
+        const value = input?.value || "";
+        if (type === "datetime" && value.includes("T")) {
+          const [datePart, timePart] = value.split("T");
+          const [year, month, day] = datePart.split("-").map(Number);
+          return { year, month: month - 1, day, time: timePart || "09:00" };
+        }
+        if (value) {
+          const [year, month, day] = value.split("-").map(Number);
+          return { year, month: month - 1, day, time: "09:00" };
+        }
+        const today = new Date();
+        return { year: today.getFullYear(), month: today.getMonth(), day: today.getDate(), time: "09:00" };
+      }
+
+      function openDatePicker(fieldId, type) {
+        const parsed = parsePickerValue(fieldId, type);
+        datePickerState.fieldId = fieldId;
+        datePickerState.type = type;
+        datePickerState.year = parsed.year;
+        datePickerState.month = parsed.month;
+        datePickerState.selectedDate = new Date(parsed.year, parsed.month, parsed.day);
+        datePickerState.selectedTime = parsed.time;
+        elements.pickerTimeRow.hidden = type !== "datetime";
+        elements.pickerTime.value = parsed.time;
+        elements.datePickerModal.hidden = false;
+        renderDatePicker();
+      }
+
+      function renderDatePicker() {
+        const { year, month, selectedDate } = datePickerState;
+        elements.pickerTitle.textContent = `${year}年${month + 1}月`;
+        elements.pickerDays.replaceChildren();
+
+        const firstDay = new Date(year, month, 1).getDay();
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+        const daysInPrevMonth = new Date(year, month, 0).getDate();
+        const totalCells = 42;
+
+        for (let cell = 0; cell < totalCells; cell += 1) {
+          const day = document.createElement("button");
+          day.type = "button";
+          day.className = "date-picker-day";
+          let dateNumber;
+          let dateValue;
+          let muted = false;
+
+          if (cell < firstDay) {
+            dateNumber = daysInPrevMonth - firstDay + cell + 1;
+            dateValue = new Date(year, month - 1, dateNumber);
+            muted = true;
+          } else if (cell >= firstDay + daysInMonth) {
+            dateNumber = cell - firstDay - daysInMonth + 1;
+            dateValue = new Date(year, month + 1, dateNumber);
+            muted = true;
+          } else {
+            dateNumber = cell - firstDay + 1;
+            dateValue = new Date(year, month, dateNumber);
+          }
+
+          day.textContent = String(dateNumber);
+          if (muted) day.classList.add("is-muted");
+          if (selectedDate && dateValue.getTime() === selectedDate.getTime()) day.classList.add("is-selected");
+
+          day.addEventListener("click", () => {
+            datePickerState.selectedDate = dateValue;
+            renderDatePicker();
+          });
+
+          elements.pickerDays.append(day);
+        }
+      }
+
+      function commitDatePicker() {
+        if (!datePickerState.fieldId || !datePickerState.selectedDate) return;
+        const date = datePickerState.selectedDate;
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const day = String(date.getDate()).padStart(2, "0");
+        const input = document.getElementById(datePickerState.fieldId);
+        if (!input) return;
+        if (datePickerState.type === "datetime") {
+          const time = elements.pickerTime.value || "09:00";
+          input.value = `${year}-${month}-${day}T${time}`;
+        } else {
+          input.value = `${year}-${month}-${day}`;
+        }
+        elements.datePickerModal.hidden = true;
+      }
+
+      elements.pickerPrev.addEventListener("click", () => {
+        datePickerState.month -= 1;
+        if (datePickerState.month < 0) {
+          datePickerState.month = 11;
+          datePickerState.year -= 1;
+        }
+        renderDatePicker();
+      });
+
+      elements.pickerNext.addEventListener("click", () => {
+        datePickerState.month += 1;
+        if (datePickerState.month > 11) {
+          datePickerState.month = 0;
+          datePickerState.year += 1;
+        }
+        renderDatePicker();
+      });
+
+      elements.pickerCancel.addEventListener("click", () => {
+        elements.datePickerModal.hidden = true;
+      });
+
+      elements.pickerConfirm.addEventListener("click", commitDatePicker);
+
+      document.addEventListener("click", (event) => {
+        const target = event.target;
+        if (target.matches && target.matches("input[data-picker]")) {
+          event.preventDefault();
+          openDatePicker(target.id, target.dataset.picker);
+        }
+      });
+      document.addEventListener("focusin", (event) => {
+        const target = event.target;
+        if (target.matches && target.matches("input[data-picker]")) {
+          openDatePicker(target.id, target.dataset.picker);
+        }
+      });
+      elements.countdownForm.addEventListener("submit", (event) => {
+        event.preventDefault();
+        const title = elements.countdownTitle.value.trim();
+        const target = elements.countdownTarget.value;
+        if (!title) {
+          elements.countdownTitle.focus();
+          return;
+        }
+        if (!target) {
+          elements.countdownTarget.focus();
+          return;
+        }
+
+        const items = loadData(COUNTDOWN_KEY, []);
+        items.push({ id: createId("countdown"), title, target });
+        persistData(COUNTDOWN_KEY, items);
+        elements.countdownForm.reset();
+        elements.countdownModal.hidden = true;
+        elements.countdownTitle.focus();
+        renderCountdowns();
+      });
+
+      elements.timelineForm.addEventListener("submit", (event) => {
+        event.preventDefault();
+        const title = elements.timelineTitle.value.trim();
+        const start = elements.timelineStart.value;
+        const end = elements.timelineEnd.value;
+        if (!title) {
+          elements.timelineTitle.focus();
+          return;
+        }
+        if (!start || !end) return;
+        if (new Date(`${end}T00:00:00`) < new Date(`${start}T00:00:00`)) {
+          window.alert("结束日期不能早于开始日期。");
+          return;
+        }
+
+        const items = loadData(TIMELINE_KEY, []);
+        items.push({ id: createId("timeline"), title, start, end });
+        persistData(TIMELINE_KEY, items);
+        elements.timelineForm.reset();
+
+      elements.timelineStart.value = toDateInputValue(new Date());
+        elements.timelineEnd.value = toDateInputValue(new Date(Date.now() + 7 * 86400000));
+        elements.timelineTitle.focus();
+        renderTimelines();
+      });
+
+      document.addEventListener("click", (event) => {
+        const button = event.target.closest("button[data-action]");
+        if (!button) return;
+        const { action, id } = button.dataset;
+
+        if (action === "delete-countdown") {
+          persistData(COUNTDOWN_KEY, loadData(COUNTDOWN_KEY, []).filter((item) => item.id !== id));
+          renderCountdowns();
+        } else if (action === "delete-timeline") {
+          persistData(TIMELINE_KEY, loadData(TIMELINE_KEY, []).filter((item) => item.id !== id));
+          renderTimelines();
+        }
+      });
+
+      function updatePlayheadPosition() {
+        const line = elements.timelineScroll.querySelector(".timeline-playhead");
+        if (line) line.style.left = `${126 + elements.timelineScroll.scrollLeft}px`;
+      }
+      elements.timelineStart.value = toDateInputValue(new Date());
+      elements.timelineEnd.value = toDateInputValue(new Date(Date.now() + 7 * 86400000));
+      elements.countdownTarget.value = toDateTimeInputValue(new Date(Date.now() + 30 * 86400000));
+      elements.countdownModal.hidden = true;
+      elements.closeCountdownModal.addEventListener("click", () => {
+        elements.countdownModal.hidden = true;
+      });
+      renderCountdowns();
+      renderTimelines();
+      elements.timelineScroll.addEventListener("scroll", updatePlayheadPosition, { passive: true });
+      window.setInterval(renderCountdowns, 60000);
+    })();
+  </script>
+</body>
+</html>
