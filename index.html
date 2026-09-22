@@ -2425,7 +2425,16 @@
         else checkedIds.add(id);
         setCheckedIds(checkedIds);
         persistState();
+
+        const scrollX = window.scrollX;
+        const scrollY = window.scrollY;
         render();
+
+        const restoreScroll = () => window.scrollTo(scrollX, scrollY);
+        requestAnimationFrame(() => {
+          restoreScroll();
+          requestAnimationFrame(restoreScroll);
+        });
       }
 
       function addCategory(event) {
