@@ -255,6 +255,34 @@
       content: "";
     }
 
+    .streak-badge {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      z-index: 2;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 6px 10px;
+      border: 1px solid rgba(255, 255, 255, 0.92);
+      border-radius: 999px;
+      color: #c65d8c;
+      background: linear-gradient(135deg, #fff5cc, #ffe4f1 65%, #ffd9eb);
+      box-shadow: 0 6px 14px rgba(211, 111, 157, 0.14);
+      font-size: 11px;
+      font-weight: 850;
+      white-space: nowrap;
+    }
+
+    .streak-badge .streak-icon {
+      font-size: 14px;
+      line-height: 1;
+    }
+
+    .streak-badge strong {
+      font-size: 15px;
+      letter-spacing: -0.04em;
+    }
     .progress-label {
       position: relative;
       z-index: 1;
@@ -1428,7 +1456,7 @@
       </div>
 
       <aside id="progressCard" class="progress-card" aria-label="今日打卡进度">
-        <p class="progress-label">今日完成</p>
+        <div class="streak-badge" aria-label="连续打卡天数"><span class="streak-icon" aria-hidden="true">🔥</span><span><strong id="streakCount">0</strong> 天连续</span></div>        <p class="progress-label">今日完成</p>
         <div class="progress-number">
           <strong id="doneCount">0</strong>
           <span>/ <span id="totalCount">0</span> 项</span>
@@ -1563,7 +1591,8 @@
         progressCard: document.getElementById("progressCard"),
         sectionStatus: document.getElementById("sectionStatus"),
         quoteText: document.getElementById("quoteText"),
-        examCountdown: document.getElementById("examCountdown")
+        examCountdown: document.getElementById("examCountdown"),
+        streakCount: document.getElementById("streakCount")
       };
 
       const dateFormatter = new Intl.DateTimeFormat("zh-CN", {
@@ -1977,6 +2006,22 @@
         return new Set(savedIds.filter((id) => validIds.has(id)));
       }
 
+      function getStreakCount() {
+        const cursor = new Date();
+        const todayKey = getDateKey(cursor);
+        const todayRecords = Array.isArray(state.records[todayKey]) ? state.records[todayKey] : [];
+        if (!todayRecords.length) cursor.setDate(cursor.getDate() - 1);
+
+        let count = 0;
+        while (true) {
+          const key = getDateKey(cursor);
+          const records = Array.isArray(state.records[key]) ? state.records[key] : [];
+          if (!records.length) break;
+          count += 1;
+          cursor.setDate(cursor.getDate() - 1);
+        }
+        return count;
+      }
       function setCheckedIds(checkedIds, dateKey = todayKey) {
         state.records[dateKey] = Array.from(checkedIds);
       }
@@ -2387,6 +2432,7 @@
         } else {
           elements.examCountdown.textContent = "四级考试日到啦！本喵相信你，放平心态去吧喵！";
         }
+        elements.streakCount.textContent = String(getStreakCount());
         elements.doneCount.textContent = String(done);
         elements.totalCount.textContent = String(total);
         elements.progressBar.style.width = `${percent}%`;
