@@ -1496,6 +1496,10 @@
       border: 0;
       background: transparent;
     }
+    .sidebar-toggle,
+    .sidebar-backdrop {
+      display: none;
+    }
     .app-layout {
       display: grid;
       grid-template-columns: 220px minmax(0, 1fr);
@@ -1673,6 +1677,10 @@
       border: 0;
       background: transparent;
     }
+    .sidebar-toggle,
+    .sidebar-backdrop {
+      display: none;
+    }
     .app-layout {
         grid-template-columns: 138px minmax(0, 1fr);
         gap: 0;
@@ -1759,6 +1767,10 @@
       border: 0;
       background: transparent;
     }
+    .sidebar-toggle,
+    .sidebar-backdrop {
+      display: none;
+    }
     .app-layout {
         grid-template-columns: 118px minmax(0, 1fr);
         gap: 8px;
@@ -1780,6 +1792,160 @@
         border-radius: 0 16px 16px 0;
       }
     }
+    @media (max-width: 900px) {
+      .app-layout {
+        display: block;
+        width: 100%;
+        margin: 0;
+        padding: 0;
+      }
+
+      .app-sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        z-index: 80;
+        width: min(78vw, 260px);
+        height: 100vh;
+        min-height: 100vh;
+        padding: 24px 16px;
+        border-radius: 0 24px 24px 0;
+        overflow-y: auto;
+        transform: translateX(-105%);
+        transition: transform 220ms cubic-bezier(.2, .9, .35, 1.1);
+      }
+
+      .app-sidebar.is-open {
+        transform: translateX(0);
+      }
+
+      .sidebar-toggle {
+        position: fixed;
+        top: 12px;
+        left: 12px;
+        z-index: 90;
+        display: grid;
+        width: 44px;
+        height: 44px;
+        padding: 10px;
+        border: 1px solid rgba(255,255,255,.85);
+        border-radius: 14px;
+        background: rgba(255,255,255,.86);
+        box-shadow: 0 8px 20px rgba(179,106,143,.16);
+        cursor: pointer;
+        place-items: center;
+        gap: 4px;
+      }
+
+      .sidebar-toggle span {
+        display: block;
+        width: 20px;
+        height: 2px;
+        border-radius: 99px;
+        background: #c15c89;
+      }
+
+      .sidebar-backdrop {
+        position: fixed;
+        inset: 0;
+        z-index: 70;
+        display: block;
+        background: rgba(65,44,61,.25);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 180ms ease;
+      }
+
+      .sidebar-backdrop.is-visible {
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      .app-main {
+        min-height: 100vh;
+        margin: 0;
+        padding: 64px 12px 18px;
+        border-radius: 0;
+      }
+
+      .sidebar-brand {
+        align-items: flex-start;
+        margin-bottom: 18px;
+        text-align: left;
+      }
+
+      .sidebar-nav {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar-link {
+        justify-content: flex-start;
+      }
+    }
+
+    @media (max-width: 560px) {
+      .app-sidebar {
+        width: 78vw;
+        padding: 22px 14px;
+      }
+
+      .app-main {
+        padding-left: 10px;
+        padding-right: 10px;
+      }
+    }
+
+    /* Mobile drawer: keep the menu out of the way by default and make its state obvious. */
+    @media (max-width: 900px) {
+      .app-sidebar {
+        width: min(82vw, 300px);
+        padding: 74px 16px 24px;
+        border-radius: 0 22px 22px 0;
+        box-shadow: 20px 0 44px rgba(169, 82, 126, 0.18);
+        overscroll-behavior: contain;
+      }
+
+      .sidebar-brand {
+        margin-bottom: 18px;
+      }
+
+      .sidebar-toggle {
+        transition:
+          background 180ms ease,
+          box-shadow 180ms ease,
+          transform 180ms ease;
+      }
+
+      .sidebar-toggle span {
+        transition: transform 180ms ease, opacity 180ms ease;
+      }
+
+      .sidebar-toggle:hover {
+        background: rgba(255, 246, 251, 0.96);
+        box-shadow: 0 10px 24px rgba(179, 106, 143, 0.22);
+      }
+
+      body.sidebar-open .sidebar-toggle span:nth-child(1) {
+        transform: translateY(6px) rotate(45deg);
+      }
+
+      body.sidebar-open .sidebar-toggle span:nth-child(2) {
+        opacity: 0;
+        transform: scaleX(0.35);
+      }
+
+      body.sidebar-open .sidebar-toggle span:nth-child(3) {
+        transform: translateY(-6px) rotate(-45deg);
+      }
+    }
+
+    @media (max-width: 560px) {
+      .app-sidebar {
+        width: min(84vw, 300px);
+        padding: 70px 14px 22px;
+      }
+    }
+
     @media (prefers-reduced-motion: reduce) {
       *,
       *::before,
@@ -1794,7 +1960,11 @@
 </head>
 <body>
   <div class="app-layout">
-    <aside class="app-sidebar">
+    <button id="sidebarToggle" class="sidebar-toggle" type="button" aria-label="打开菜单" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+    <div id="sidebarBackdrop" class="sidebar-backdrop" aria-hidden="true"></div>
+    <aside id="appSidebar" class="app-sidebar">
       <div class="sidebar-brand">
         <span>任务打卡</span>
         <small>猫猫监督中</small>
@@ -3172,12 +3342,22 @@
       }
 
       const viewButtons = Array.from(document.querySelectorAll(".sidebar-link[data-view]"));
+      const sidebarToggle = document.getElementById("sidebarToggle");
+      const sidebarBackdrop = document.getElementById("sidebarBackdrop");
+      const appSidebar = document.getElementById("appSidebar");
       const homeView = document.getElementById("homeView");
       const tasksView = document.getElementById("tasksView");
       const countdownView = document.getElementById("countdownView");
       const homeFrame = document.getElementById("homeFrame");
       const countdownFrame = document.getElementById("countdownFrame");
 
+      function setSidebarOpen(open) {
+        appSidebar.classList.toggle("is-open", open);
+        sidebarBackdrop.classList.toggle("is-visible", open);
+        sidebarToggle.setAttribute("aria-expanded", String(open));
+        sidebarToggle.setAttribute("aria-label", open ? "关闭菜单" : "打开菜单");
+        document.body.classList.toggle("sidebar-open", open);
+      }
       function resizeHomeFrame() {
         try {
           const doc = homeFrame.contentDocument;
@@ -3213,10 +3393,23 @@
         }
 
         window.scrollTo({ top: 0, behavior: "smooth" });
+        if (window.innerWidth <= 900) setSidebarOpen(false);
       }
 
       viewButtons.forEach((button) => {
         button.addEventListener("click", () => switchView(button.dataset.view));
+      });
+
+      sidebarToggle.addEventListener("click", () => {
+        setSidebarOpen(!appSidebar.classList.contains("is-open"));
+      });
+
+      sidebarBackdrop.addEventListener("click", () => setSidebarOpen(false));
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") setSidebarOpen(false);
+      });
+      window.addEventListener("resize", () => {
+        if (window.innerWidth > 900) setSidebarOpen(false);
       });
 
       countdownFrame.addEventListener("load", resizeCountdownFrame);
