@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#f7f9ff">
-  <title>习惯打卡</title>
+  <title>任务打卡</title>
   <style>
     :root {
       color-scheme: light;
@@ -115,10 +115,10 @@
     }
     .hero {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) 218px;
-      gap: 30px;
+      grid-template-columns: minmax(0, 1fr) 238px;
+      gap: 22px;
       align-items: stretch;
-      margin-bottom: 24px;
+      margin-bottom: 20px;
     }
 
     .hero-copy {
@@ -151,8 +151,9 @@
 
     h1 {
       display: flex;
-      flex-wrap: nowrap;
+      flex-wrap: wrap;
       align-items: flex-end;
+      row-gap: 0;
       width: fit-content;
       max-width: 100%;
       margin: 0 0 -0.06em;
@@ -234,11 +235,11 @@
       display: flex;
       flex-direction: column;
       justify-content: center;
-      min-height: 188px;
+      min-height: 148px;
       overflow: hidden;
-      padding: 25px;
+      padding: 18px;
       border: 1px solid rgba(255, 255, 255, 0.92);
-      border-radius: 28px;
+      border-radius: 18px;
       background: linear-gradient(155deg, rgba(255, 236, 246, 0.98), rgba(245, 238, 255, 0.96) 52%, rgba(227, 239, 255, 0.95));
       box-shadow: 0 18px 48px rgba(91, 109, 163, 0.12);
       color: #5365b2;
@@ -256,24 +257,41 @@
     }
 
     .streak-badge {
-      position: absolute;
-      top: 14px;
-      right: 14px;
+      position: static;
+      align-self: flex-end;
+      margin-bottom: 6px;
       z-index: 2;
       display: inline-flex;
       align-items: center;
       gap: 5px;
-      padding: 6px 10px;
+      padding: 4px 8px;
       border: 1px solid rgba(255, 255, 255, 0.92);
       border-radius: 999px;
       color: #c65d8c;
       background: linear-gradient(135deg, #fff5cc, #ffe4f1 65%, #ffd9eb);
       box-shadow: 0 6px 14px rgba(211, 111, 157, 0.14);
-      font-size: 11px;
+      font-size: 10px;
       font-weight: 850;
       white-space: nowrap;
     }
 
+    .streak-cat {
+      display: grid;
+      width: 16px;
+      height: 16px;
+      color: #d8669c;
+      place-items: center;
+    }
+
+    .streak-cat svg {
+      width: 16px;
+      height: 16px;
+      fill: none;
+      stroke: currentColor;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      stroke-width: 1.7;
+    }
     .streak-badge .streak-icon {
       font-size: 14px;
       line-height: 1;
@@ -286,24 +304,29 @@
     .progress-label {
       position: relative;
       z-index: 1;
-      margin: 0 0 12px;
+      margin: 0 0 8px;
       color: #6673ae;
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 700;
       letter-spacing: 0.08em;
     }
 
+    .progress-label.is-complete {
+      color: #dc5e96;
+      font-size: 16px;
+      letter-spacing: 0.14em;
+    }
     .progress-number {
       position: relative;
       z-index: 1;
       display: flex;
       align-items: baseline;
       gap: 7px;
-      margin-bottom: 18px;
+      margin-bottom: 11px;
     }
 
     .progress-number strong {
-      font-size: 46px;
+      font-size: 36px;
       line-height: 1;
       letter-spacing: -0.06em;
     }
@@ -316,7 +339,7 @@
     .progress-track {
       position: relative;
       z-index: 1;
-      height: 8px;
+      height: 7px;
       overflow: hidden;
       border: 1px solid rgba(255, 246, 187, 0.24);
       border-radius: 99px;
@@ -342,11 +365,12 @@
     .exam-countdown {
       position: relative;
       z-index: 1;
-      margin: 12px 0 0;
+      margin: 8px 0 0;
       color: #a3668a;
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 750;
-      letter-spacing: 0.02em;
+      line-height: 1.4;
+      letter-spacing: 0.01em;
     }
 
     .exam-countdown strong {
@@ -375,6 +399,12 @@
       margin-bottom: 18px;
       padding: 16px;
       border-radius: 22px;
+    }
+
+    .add-form,
+    .form-message {
+      position: relative;
+      z-index: 1;
     }
 
     .add-form {
@@ -1375,7 +1405,13 @@
         font-size: 39px;
       }
 
-      .add-form {
+      .add-form,
+    .form-message {
+      position: relative;
+      z-index: 1;
+    }
+
+    .add-form {
         flex-direction: column;
       }
 
@@ -1432,6 +1468,318 @@
       }
     }
 
+    .sidebar-link {
+      border: 0;
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .app-view {
+      display: none;
+    }
+
+    .app-view.is-active {
+      display: block;
+    }
+
+    #homeView,
+    #countdownView {
+      min-height: 70vh;
+    }
+
+    #homeFrame,
+    #countdownFrame {
+      display: block;
+      width: 100%;
+      min-height: 0;
+      height: calc(100vh - 52px);
+      border: 0;
+      background: transparent;
+    }
+    .app-layout {
+      display: grid;
+      grid-template-columns: 220px minmax(0, 1fr);
+      gap: 0;
+      width: min(100% - 28px, 1240px);
+      margin: 0 auto;
+      padding: 0 0 42px;
+      align-items: start;
+    }
+
+    .app-sidebar {
+      position: sticky;
+      top: 0;
+      display: flex;
+      min-height: 100vh;
+      flex-direction: column;
+      padding: 26px 18px 20px;
+      border-radius: 0;
+      z-index: 2;
+      color: #a84f79;
+      background:
+        radial-gradient(circle at 15% 8%, rgba(255, 255, 255, 0.75), transparent 8rem),
+        linear-gradient(165deg, #ffe8f2, #ffd2e5 55%, #f7bbd5);
+      box-shadow: 0 16px 36px rgba(200, 108, 151, 0.15);
+    }
+
+    .sidebar-brand {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      margin-bottom: 28px;
+    }
+
+    .sidebar-brand span {
+      font-size: 24px;
+      font-weight: 900;
+      letter-spacing: -0.04em;
+    }
+
+    .sidebar-brand small {
+      color: rgba(161, 76, 117, 0.72);
+      font-size: 11px;
+    }
+
+    .sidebar-nav {
+      display: grid;
+      gap: 9px;
+    }
+
+    .sidebar-link {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 13px;
+      border-radius: 14px;
+      color: #ad5a83;
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 800;
+      transition: background 160ms ease, transform 160ms ease, color 160ms ease;
+    }
+
+    .sidebar-link:hover {
+      color: #d24e87;
+      background: rgba(255, 255, 255, 0.62);
+      transform: translateX(2px);
+    }
+
+    .sidebar-link.is-active {
+      color: #c34f82;
+      background: rgba(255, 255, 255, 0.9);
+      box-shadow: 0 8px 18px rgba(153, 63, 106, 0.14);
+    }
+
+    .sidebar-icon {
+      display: grid;
+      width: 24px;
+      height: 24px;
+      border-radius: 9px;
+      background: rgba(255, 255, 255, 0.18);
+      place-items: center;
+      font-size: 13px;
+    }
+
+    .sidebar-link.is-active .sidebar-icon {
+      background: #ffe3ef;
+    }
+
+    .sidebar-note {
+      margin-top: auto;
+      padding: 12px;
+      border-radius: 14px;
+      color: #a85a80;
+      background: rgba(255, 255, 255, 0.48);
+      font-size: 11px;
+      line-height: 1.6;
+      text-align: center;
+    }
+
+    .app-main {
+      position: relative;
+      z-index: 1;
+      min-width: 0;
+      margin-left: -16px;
+      padding: 26px 26px 26px 42px;
+      border: 1px solid rgba(255, 255, 255, 0.82);
+      border-radius: 0 24px 24px 0;
+      background: linear-gradient(145deg, rgba(255, 248, 252, 0.96), rgba(255, 241, 247, 0.95));
+      box-shadow: 0 18px 46px rgba(204, 126, 163, 0.13);
+    }
+
+    .app-main .progress-card,
+    .app-main .add-card,
+    .app-main .habits-card {
+      border-radius: 18px;
+    }
+
+    .app-main .category-card {
+      border-radius: 16px;
+    }
+    .app-layout .page-shell {
+      width: 100%;
+      margin: 0;
+      padding: 0;
+    }
+
+    .app-view {
+      display: none;
+    }
+
+    .app-view.is-active {
+      display: block;
+    }
+
+    #homeView,
+    #countdownView {
+      min-height: 70vh;
+    }
+
+    #homeFrame,
+    #countdownFrame {
+      display: block;
+      width: 100%;
+      min-height: 0;
+      height: calc(100vh - 52px);
+      border: 0;
+      background: transparent;
+    }
+    @media (max-width: 900px) {
+      .sidebar-link {
+      border: 0;
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .app-view {
+      display: none;
+    }
+
+    .app-view.is-active {
+      display: block;
+    }
+
+    #homeView,
+    #countdownView {
+      min-height: 70vh;
+    }
+
+    #homeFrame,
+    #countdownFrame {
+      display: block;
+      width: 100%;
+      min-height: 0;
+      height: calc(100vh - 52px);
+      border: 0;
+      background: transparent;
+    }
+    .app-layout {
+        grid-template-columns: 138px minmax(0, 1fr);
+        gap: 0;
+        width: min(100% - 14px, 1240px);
+        padding-top: 0;
+      }
+
+      .app-sidebar {
+        position: sticky;
+        top: 0;
+        min-height: 100vh;
+        padding: 14px 8px;
+        border-radius: 0;
+      }
+
+      .sidebar-brand {
+        align-items: flex-start;
+        margin-bottom: 18px;
+        text-align: left;
+      }
+
+      .sidebar-brand span {
+        font-size: 16px;
+        line-height: 1.15;
+      }
+
+      .sidebar-note {
+        display: none;
+      }
+
+      .sidebar-nav {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar-link {
+        justify-content: flex-start;
+        gap: 8px;
+        padding: 10px 8px;
+      }
+
+      .sidebar-link:hover {
+        transform: none;
+      }
+
+      .sidebar-icon {
+        width: 30px;
+        height: 30px;
+        font-size: 15px;
+      }
+
+      .app-main {
+        margin-left: -10px;
+        padding: 16px 12px 16px 26px;
+        border-radius: 0 18px 18px 0;
+      }
+    }
+
+    @media (max-width: 560px) {
+      .sidebar-link {
+      border: 0;
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .app-view {
+      display: none;
+    }
+
+    .app-view.is-active {
+      display: block;
+    }
+
+    #homeView,
+    #countdownView {
+      min-height: 70vh;
+    }
+
+    #homeFrame,
+    #countdownFrame {
+      display: block;
+      width: 100%;
+      min-height: 0;
+      height: calc(100vh - 52px);
+      border: 0;
+      background: transparent;
+    }
+    .app-layout {
+        grid-template-columns: 118px minmax(0, 1fr);
+        gap: 8px;
+        width: min(100% - 8px, 1240px);
+      }
+
+      .app-sidebar {
+        padding: 12px 5px;
+        border-radius: 0;
+      }
+
+      .sidebar-brand span {
+        font-size: 13px;
+      }
+
+      .app-main {
+        margin-left: -8px;
+        padding-left: 20px;
+        border-radius: 0 16px 16px 0;
+      }
+    }
     @media (prefers-reduced-motion: reduce) {
       *,
       *::before,
@@ -1445,7 +1793,34 @@
   </style>
 </head>
 <body>
-  <div class="page-shell">
+  <div class="app-layout">
+    <aside class="app-sidebar">
+      <div class="sidebar-brand">
+        <span>任务打卡</span>
+        <small>猫猫监督中</small>
+      </div>
+      <nav class="sidebar-nav" aria-label="功能导航">
+        <button class="sidebar-link is-active" type="button" data-view="home">
+          <span class="sidebar-icon">🏮</span>
+          <span>主界面</span>
+        </button>
+        <button class="sidebar-link" type="button" data-view="tasks">
+          <span class="sidebar-icon">✓</span>
+          <span>任务打卡</span>
+        </button>
+        <button class="sidebar-link" type="button" data-view="countdown">
+          <span class="sidebar-icon">⏳</span>
+          <span>倒计时和时间轴</span>
+        </button>
+      </nav>
+      <div class="sidebar-note">今天也一起加油喵 ♥</div>
+    </aside>
+    <main class="app-main">
+      <div id="homeView" class="app-view is-active">
+        <iframe id="homeFrame" src="voxel-village.html?embedded=1" title="主界面"></iframe>
+      </div>
+      <div id="tasksView" class="app-view">
+        <div class="page-shell">
     <div id="storageNotice" class="storage-notice" role="status"></div>
 
     <header class="hero">
@@ -1456,7 +1831,7 @@
       </div>
 
       <aside id="progressCard" class="progress-card" aria-label="今日打卡进度">
-        <div class="streak-badge" aria-label="连续打卡天数"><span class="streak-icon" aria-hidden="true">🔥</span><span><strong id="streakCount">0</strong> 天连续</span></div>        <p class="progress-label">今日完成</p>
+        <div class="streak-badge" aria-label="已打卡天数"><span class="streak-cat" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M8.2 12.2 6.1 5.4l5.3 3.1c1.3-.5 2.9-.8 4.6-.8s3.3.3 4.6.8l5.3-3.1-2.1 6.8c1.2 1.7 1.9 3.7 1.9 5.8 0 5.6-4.1 9.5-9.7 9.5s-9.7-3.9-9.7-9.5c0-2.1.7-4.1 1.9-5.8Z"/><path d="M11.5 19.2h.01"/><path d="M20.5 19.2h.01"/><path d="m16 21-.9 1.1h1.8L16 21Z"/><path d="M16 22.1c.9 0 1.7-.4 2.2-1.1M16 22.1c-.9 0-1.7-.4-2.2-1.1"/><path d="M10.6 21.4H7.7M21.4 21.4h2.9"/></svg></span><span>已打卡 <strong id="streakCount">0</strong> 天</span></div>        <p id="progressLabel" class="progress-label">今日完成</p>
         <div class="progress-number">
           <strong id="doneCount">0</strong>
           <span>/ <span id="totalCount">0</span> 项</span>
@@ -1469,14 +1844,7 @@
     </header>
 
     <main>
-      <a class="countdown-launcher" href="countdown.html">
-        <span class="countdown-launcher-icon" aria-hidden="true">⏳</span>
-        <span class="countdown-launcher-copy">
-          <strong>倒计时 & 时间轴</strong>
-          <small>考试、纪念日、计划进度都能记</small>
-        </span>
-        <span class="countdown-launcher-arrow" aria-hidden="true">›</span>
-      </a>
+
       <section class="add-card" aria-label="添加大类任务">
         <form id="categoryForm" class="add-form" novalidate>
           <div class="add-input-wrap">
@@ -1505,9 +1873,12 @@
           <p>先新建一个大类，再往里面添加小任务吧。</p>
         </div>
       </section>
+        </div>
+      </div>
+      <div id="countdownView" class="app-view">
+        <iframe id="countdownFrame" data-src="countdown.html?embedded=1" title="倒计时和时间轴"></iframe>
+      </div>
     </main>
-
-    <footer>数据仅保存在当前浏览器中</footer>
   </div>
 
   <script>
@@ -1589,6 +1960,7 @@
         totalCount: document.getElementById("totalCount"),
         progressBar: document.getElementById("progressBar"),
         progressCard: document.getElementById("progressCard"),
+        progressLabel: document.getElementById("progressLabel"),
         sectionStatus: document.getElementById("sectionStatus"),
         quoteText: document.getElementById("quoteText"),
         examCountdown: document.getElementById("examCountdown"),
@@ -1606,7 +1978,7 @@
         "哼，本喵才没有在夸你，不过……今天也做得不错嘛。",
         "再坚持一下啦。要是半途而废，本喵可是会生气的喵。",
         "你今天的一点努力，本喵都好好看见了哦。",
-        "别偷懒嘛，完成以后，本喵就勉强夸夸你。",
+        "别偷懒嘛，完成以后，本喵就偷偷夸夸你。",
         "就算慢一点也没关系，本喵会在这里陪着你的。",
         "只差一点点啦，快让本喵看看你厉害的样子。",
         "才、才不是特意等你，只是顺便监督你一下而已，喵。",
@@ -1622,7 +1994,7 @@
         "现在动手的话，本喵会悄悄记住哦。",
         "再坚持一下，完成以后摸摸头喵。",
         "这点小事难不倒你吧，喵？",
-        "做完这一项，本喵勉强给你一个赞。",
+        "做完这一项，本喵就赏你一个赞喵。",
         "本喵就在这里，等你把勾交上来。",
         "先完成再休息，本喵才准你偷懒喵。",
         "你可别让本喵等太久哦。",
@@ -1632,7 +2004,7 @@
 
       const catTaskCompletedMessages = [
         "做完了嘛？哼，还不错喵。",
-        "本喵勉强夸夸你，继续哦。",
+        "哼，还算不错，本喵再陪你继续做。",
         "这次算你厉害，爪印收下啦。",
         "很好嘛，本喵有好好看着哦。",
         "完成得不错，摸摸头奖励一下喵。",
@@ -2006,21 +2378,10 @@
         return new Set(savedIds.filter((id) => validIds.has(id)));
       }
 
-      function getStreakCount() {
-        const cursor = new Date();
-        const todayKey = getDateKey(cursor);
-        const todayRecords = Array.isArray(state.records[todayKey]) ? state.records[todayKey] : [];
-        if (!todayRecords.length) cursor.setDate(cursor.getDate() - 1);
-
-        let count = 0;
-        while (true) {
-          const key = getDateKey(cursor);
-          const records = Array.isArray(state.records[key]) ? state.records[key] : [];
-          if (!records.length) break;
-          count += 1;
-          cursor.setDate(cursor.getDate() - 1);
-        }
-        return count;
+      function getCheckedDayCount() {
+        return Object.values(state.records).filter((records) =>
+          Array.isArray(records) && records.length > 0
+        ).length;
       }
       function setCheckedIds(checkedIds, dateKey = todayKey) {
         state.records[dateKey] = Array.from(checkedIds);
@@ -2432,7 +2793,10 @@
         } else {
           elements.examCountdown.textContent = "四级考试日到啦！本喵相信你，放平心态去吧喵！";
         }
-        elements.streakCount.textContent = String(getStreakCount());
+        const allDone = total > 0 && done === total;
+        elements.progressLabel.textContent = allDone ? "真棒" : "今日完成";
+        elements.progressLabel.classList.toggle("is-complete", allDone);
+        elements.streakCount.textContent = String(getCheckedDayCount());
         elements.doneCount.textContent = String(done);
         elements.totalCount.textContent = String(total);
         elements.progressBar.style.width = `${percent}%`;
@@ -2441,7 +2805,7 @@
         if (total === 0) {
           elements.sectionStatus.textContent = state.categories.length ? "大类已经准备好啦" : "等待添加";
         } else if (done === total) {
-          elements.sectionStatus.textContent = "全部完成，今天很厉害";
+          elements.sectionStatus.textContent = "哼，全做完啦，本喵今天看你顺眼一点喵。";
         } else {
           elements.sectionStatus.textContent = `还有 ${total - done} 项待完成`;
         }
@@ -2807,6 +3171,56 @@
         });
       }
 
+      const viewButtons = Array.from(document.querySelectorAll(".sidebar-link[data-view]"));
+      const homeView = document.getElementById("homeView");
+      const tasksView = document.getElementById("tasksView");
+      const countdownView = document.getElementById("countdownView");
+      const homeFrame = document.getElementById("homeFrame");
+      const countdownFrame = document.getElementById("countdownFrame");
+
+      function resizeHomeFrame() {
+        try {
+          const doc = homeFrame.contentDocument;
+          if (!doc) return;
+          homeFrame.style.height = `${Math.max(760, doc.documentElement.scrollHeight + 10)}px`;
+        } catch (error) {
+          homeFrame.style.height = "900px";
+        }
+      }
+      function resizeCountdownFrame() {
+        try {
+          const doc = countdownFrame.contentDocument;
+          if (!doc) return;
+          countdownFrame.style.height = `${Math.max(900, doc.documentElement.scrollHeight + 20)}px`;
+        } catch (error) {
+          countdownFrame.style.height = "1200px";
+        }
+      }
+
+      function switchView(viewName) {
+        homeView.classList.toggle("is-active", viewName === "home");
+        tasksView.classList.toggle("is-active", viewName === "tasks");
+        countdownView.classList.toggle("is-active", viewName === "countdown");
+        viewButtons.forEach((button) => {
+          button.classList.toggle("is-active", button.dataset.view === viewName);
+        });
+
+        if (viewName === "countdown") {
+          if (!countdownFrame.src) countdownFrame.src = countdownFrame.dataset.src;
+          requestAnimationFrame(resizeCountdownFrame);
+        } else if (viewName === "home") {
+          requestAnimationFrame(resizeHomeFrame);
+        }
+
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+
+      viewButtons.forEach((button) => {
+        button.addEventListener("click", () => switchView(button.dataset.view));
+      });
+
+      countdownFrame.addEventListener("load", resizeCountdownFrame);
+      homeFrame.addEventListener("load", resizeHomeFrame);
       render();
     })();
   </script>

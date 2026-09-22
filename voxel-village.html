@@ -1,0 +1,683 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>月影村 · 主界面</title>
+  <style>
+    * { box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; margin: 0; }
+    body {
+      overflow: hidden;
+      background: #c7e9f7;
+      font-family: "YouYuan", "幼圆", "Microsoft YaHei UI", "PingFang SC", sans-serif;
+    }
+    .voxel-game {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      min-height: 0;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 35% 30%, rgba(255,255,255,.96), transparent 28rem),
+        linear-gradient(150deg, #fafaf7 0%, #eef0e8 58%, #ebece5 100%);
+    }
+    canvas { display: block; width: 100%; height: 100%; cursor: grab; touch-action: none; }
+    canvas:active { cursor: grabbing; }
+    .vignette {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: linear-gradient(180deg, rgba(34,64,94,.02), transparent 32%, rgba(66,44,78,.14));
+      box-shadow: inset 0 0 100px rgba(73,92,120,.16);
+    }
+    .area-card, .party-card, .dialogue, .control-tip {
+      position: absolute;
+      border: 1px solid rgba(255,255,255,.74);
+      box-shadow: 0 12px 30px rgba(59,73,110,.18);
+      backdrop-filter: blur(9px);
+    }
+    .area-card {
+      top: 20px;
+      left: 22px;
+      min-width: 170px;
+      padding: 11px 14px;
+      border-radius: 14px;
+      color: #fff;
+      background: linear-gradient(135deg, rgba(69,103,162,.88), rgba(122,94,165,.78));
+    }
+    .area-card small { display: block; margin-bottom: 4px; font-size: 10px; letter-spacing: .22em; opacity: .78; }
+    .area-card strong { display: block; font-size: 23px; letter-spacing: .12em; text-shadow: 0 2px 7px rgba(24,43,87,.3); }
+    .area-card span { display: block; margin-top: 5px; font-size: 11px; opacity: .88; }
+    .party-card {
+      top: 20px;
+      right: 20px;
+      width: 165px;
+      padding: 8px;
+      border-radius: 14px;
+      background: rgba(255,250,253,.78);
+    }
+    .party-member {
+      display: grid;
+      grid-template-columns: 28px minmax(0,1fr);
+      gap: 8px;
+      align-items: center;
+      padding: 7px 6px;
+      border-radius: 9px;
+      color: #5d5973;
+      font-size: 11px;
+    }
+    .party-member + .party-member { border-top: 1px solid rgba(176,153,185,.18); }
+    .party-avatar {
+      display: grid;
+      width: 28px;
+      height: 28px;
+      border-radius: 9px;
+      color: #fff;
+      background: linear-gradient(135deg, #f49abb, #7d92dc);
+      place-items: center;
+      font-size: 11px;
+      font-weight: 900;
+    }
+    .party-copy strong { display: block; font-size: 12px; }
+    .hp-track { height: 5px; margin-top: 4px; overflow: hidden; border-radius: 99px; background: #e9e5ef; }
+    .hp-fill { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg,#70d7a2,#b9e77e); }
+    .dialogue {
+      left: 50%;
+      bottom: 24px;
+      width: min(650px, calc(100% - 40px));
+      min-height: 88px;
+      padding: 11px 16px 11px 86px;
+      border-radius: 16px;
+      color: #4d4664;
+      background: linear-gradient(135deg, rgba(255,252,253,.94), rgba(246,242,255,.9));
+      transform: translateX(-50%);
+    }
+    .dialogue::before {
+      position: absolute;
+      top: 15px;
+      left: 16px;
+      display: grid;
+      width: 60px;
+      height: 60px;
+      border-radius: 14px;
+      color: #fff;
+      background: linear-gradient(145deg,#f39ab9,#798dd7);
+      content: "旅";
+      font-size: 27px;
+      font-weight: 900;
+      place-items: center;
+      box-shadow: inset 0 0 0 3px rgba(255,255,255,.35);
+    }
+    .dialogue-name { color: #b24e79; font-size: 12px; font-weight: 850; letter-spacing: .12em; }
+    .dialogue-text { margin-top: 7px; font-size: 14px; line-height: 1.65; }
+    .control-tip {
+      right: 20px;
+      bottom: 25px;
+      padding: 8px 11px;
+      border-radius: 99px;
+      color: #71677d;
+      background: rgba(255,250,253,.72);
+      font-size: 10px;
+    }
+    .voxel-game[data-time="evening"] canvas { filter: sepia(.14) saturate(1.08) brightness(.96); }
+    .voxel-game[data-time="night"] canvas { filter: brightness(.62) saturate(.78) hue-rotate(10deg); }
+    .area-card, .time-switch, .info-card, .side-controls, .bottom-caption {
+      position: absolute;
+      z-index: 4;
+      color: #55594f;
+      backdrop-filter: none;
+      border: 0;
+      box-shadow: none;
+    }
+
+    .area-card {
+      top: 24px;
+      left: 28px;
+      min-width: 0;
+      padding: 0;
+      background: none;
+    }
+
+    .area-card small {
+      color: #7c806f;
+      font-size: 10px;
+      letter-spacing: .38em;
+    }
+
+    .area-card strong {
+      display: block;
+      margin-top: 10px;
+      color: #4f554b;
+      font-family: "SimSun", "宋体", serif;
+      font-size: 32px;
+      font-weight: 400;
+      letter-spacing: .08em;
+      text-shadow: none;
+    }
+
+    .area-card span, .area-card em {
+      display: block;
+      margin-top: 8px;
+      color: #777c70;
+      font-size: 12px;
+      font-style: normal;
+      line-height: 1.6;
+    }
+
+    .time-switch {
+      top: 22px;
+      right: 28px;
+      display: flex;
+      gap: 4px;
+      padding: 5px;
+      border-radius: 99px;
+      background: rgba(255,255,255,.7);
+    }
+
+    .time-switch button {
+      width: 38px;
+      height: 32px;
+      border: 0;
+      border-radius: 50%;
+      color: #7b7f72;
+      background: transparent;
+      cursor: pointer;
+    }
+
+    .time-switch button.is-active {
+      color: #fff;
+      background: #7f9479;
+      box-shadow: 0 5px 13px rgba(77,101,78,.22);
+    }
+
+    .info-card {
+      left: 26px;
+      bottom: 24px;
+      width: 310px;
+      min-height: 158px;
+      padding: 18px 20px;
+      border-radius: 18px;
+      background: rgba(255,255,255,.84);
+      box-shadow: 0 12px 34px rgba(77,84,72,.12);
+    }
+
+    .info-card small { color: #a0a091; font-size: 10px; }
+    .info-card strong { display: block; margin-top: 9px; color: #575c51; font-size: 20px; }
+    .info-card span { display: block; margin-top: 4px; color: #9a9b8f; font-size: 11px; }
+    .info-card p { margin: 16px 0 0; color: #666b60; font-size: 12px; line-height: 1.8; }
+    .info-card b { display: block; margin-top: 12px; color: #98998d; font-size: 10px; font-weight: 500; }
+
+    .side-controls {
+      top: 50%;
+      right: 24px;
+      display: grid;
+      gap: 5px;
+      padding: 7px;
+      border-radius: 24px;
+      background: rgba(255,255,255,.78);
+      box-shadow: 0 10px 26px rgba(77,84,72,.12);
+      transform: translateY(-50%);
+    }
+
+    .side-controls button {
+      display: grid;
+      width: 32px;
+      height: 32px;
+      padding: 0;
+      border: 0;
+      border-radius: 50%;
+      color: #6f7569;
+      background: transparent;
+      cursor: pointer;
+      font-size: 17px;
+      place-items: center;
+    }
+
+    .side-controls button:hover { background: #eef0e8; }
+    .bottom-caption { left: 50%; bottom: 18px; color: #898d82; font-size: 11px; transform: translateX(-50%); }
+
+    @media (max-width: 680px) {
+      .area-card { top: 15px; left: 15px; }
+      .area-card strong { font-size: 24px; }
+      .time-switch { top: 14px; right: 14px; }
+      .info-card { left: 12px; bottom: 12px; width: 230px; min-height: 0; padding: 13px 15px; }
+      .info-card p { margin-top: 10px; font-size: 11px; }
+      .side-controls { right: 12px; }
+      .bottom-caption { display: none; }
+    }    @media (max-width: 680px) {
+      .voxel-game { min-height: 680px; }
+      .area-card { top: 10px; left: 10px; min-width: 145px; padding: 10px 12px; }
+      .area-card strong { font-size: 18px; }
+      .party-card { top: 10px; right: 10px; width: 142px; }
+      .party-member { grid-template-columns: 24px 1fr; }
+      .party-avatar { width: 24px; height: 24px; }
+      .dialogue { bottom: 12px; width: calc(100% - 20px); min-height: 88px; padding: 11px 12px 11px 72px; }
+      .dialogue::before { top: 12px; left: 12px; width: 50px; height: 50px; font-size: 23px; }
+      .dialogue-text { font-size: 12px; }
+      .control-tip { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="voxel-game">
+    <canvas id="voxelCanvas" aria-label="月影村体素场景"></canvas>
+    <div class="vignette"></div>
+    <div class="area-card">
+      <small>KOMOREBI</small>
+      <strong>木漏れ日</strong>
+      <span>把日子，交给山风。</span>
+      <em>世界的一隅 / 001</em>
+    </div>
+    <div class="time-switch">
+      <button type="button" class="is-active">昼</button>
+      <button type="button">夕</button>
+      <button type="button">夜</button>
+    </div>
+    <div class="info-card">
+      <small>04 / 04 · 一盏茶的光阴</small>
+      <strong>小春茶屋</strong>
+      <span>小春の茶屋</span>
+      <p id="dialogueText">炉火刚好，茶也刚沏好。<br>老板娘留了靠窗的位置，等一个路过的旅人。</p>
+      <b>旅人手帖</b>
+    </div>
+    <div class="side-controls">
+      <button type="button" data-action="zoom-in" aria-label="放大">＋</button>
+      <button type="button" data-action="zoom-out" aria-label="缩小">－</button>
+      <button type="button" data-action="left" aria-label="左转">‹</button>
+      <button type="button" data-action="right" aria-label="右转">›</button>
+      <button type="button" data-action="reset" aria-label="重置">◎</button>
+    </div>
+    <div class="bottom-caption">此处没有任务，只有风景。</div>
+  </div>
+  <script>
+    (() => {
+      "use strict";
+
+      const canvas = document.getElementById("voxelCanvas");
+      const ctx = canvas.getContext("2d");
+      const dialogue = document.getElementById("dialogueText");
+      const cubes = [];
+      const petals = [];
+      const fireflies = [];
+      let width = 0;
+      let height = 0;
+      let dpr = 1;
+      let yaw = -0.72;
+      let zoom = 1;
+      let dragging = false;
+      let lastX = 0;
+      let lastY = 0;
+
+      const palette = {
+        grass: ["#77b977", "#82c57d", "#6fae72", "#8acb87"],
+        water: ["#61b8dc", "#74c9e5", "#4fa9d1"],
+        path: ["#d8c79b", "#cbb98c", "#e2d3aa"],
+        wood: "#8c6548",
+        woodDark: "#644737",
+        plaster: "#f6ead4",
+        roofTeal: "#456f78",
+        roofPurple: "#6d596f",
+        roofPink: "#c97991",
+        sakura: ["#f5a8c4", "#ffc2d7", "#eb91b4"],
+        lantern: "#ffd276"
+      };
+
+      function addCube(x, y, z, color, w = 1, d = 1, h = 1, glow = 0) {
+        cubes.push({ x, y, z, color, w, d, h, glow });
+      }
+
+      function colorShift(hex, amount) {
+        const value = parseInt(hex.slice(1), 16);
+        const r = Math.max(0, Math.min(255, (value >> 16) + amount));
+        const g = Math.max(0, Math.min(255, ((value >> 8) & 255) + amount));
+        const b = Math.max(0, Math.min(255, (value & 255) + amount));
+        return `rgb(${r},${g},${b})`;
+      }
+
+      function addHouse(x, z, body = palette.plaster, roof = palette.roofTeal, scale = 1) {
+        addCube(x, 1, z, body, 3 * scale, 3 * scale, 2.1 * scale);
+        addCube(x - 0.18, 2.7 * scale, z - 0.18, roof, 3.35 * scale, 3.35 * scale, 0.7 * scale);
+        addCube(x + 0.43, 0.95 * scale, z - 0.04, "#6d8fb1", 0.72 * scale, 0.08 * scale, 0.72 * scale);
+        addCube(x + 1.75 * scale, 1.25 * scale, z + 1.18 * scale, palette.wood, 0.62 * scale, 0.25 * scale, 1.35 * scale);
+      }
+
+      function addTree(x, z, blossom = true) {
+        addCube(x + 0.35, 0.8, z + 0.35, palette.woodDark, 0.48, 0.48, 1.7);
+        const leaves = blossom ? palette.sakura : ["#5eaa69", "#71b978", "#4e9661"];
+        addCube(x - 0.38, 2.15, z - 0.38, leaves[0], 2.15, 2.15, 1.25);
+        addCube(x + 0.1, 2.8, z + 0.15, leaves[1], 1.25, 1.25, 0.8);
+        addCube(x - 0.85, 2.55, z + 0.2, leaves[2], 1.05, 1.05, 0.75);
+        addCube(x + 0.75, 2.35, z + 0.75, leaves[1], 1.0, 1.0, 0.7);
+      }
+
+      function addLantern(x, z) {
+        addCube(x, 0.5, z, palette.woodDark, 0.22, 0.22, 1.05);
+        addCube(x - 0.14, 1.45, z - 0.14, palette.lantern, 0.72, 0.72, 0.72, 1);
+      }
+
+      function addTorii(x, z) {
+        addCube(x, 0.65, z, "#d84d64", 0.42, 0.42, 2.3);
+        addCube(x + 2.55, 0.65, z, "#d84d64", 0.42, 0.42, 2.3);
+        addCube(x - 0.28, 2.7, z - 0.18, "#e65a70", 3.7, 0.62, 0.52);
+        addCube(x + 0.15, 2.25, z - 0.08, "#bd3d55", 3.0, 0.34, 0.35);
+      }
+
+      function addLighthouse(x, z) {
+        addCube(x, 0.5, z, "#f4f3ef", 2.1, 2.1, 2.6);
+        addCube(x + 0.2, 2.8, z + 0.2, "#f9f8f4", 1.7, 1.7, 1.8);
+        addCube(x + 0.35, 4.25, z + 0.35, "#fffdf7", 1.4, 1.4, 1.3);
+        addCube(x + 0.12, 5.2, z + 0.12, "#eff6f4", 1.85, 1.85, 0.42);
+        addCube(x + 0.45, 5.6, z + 0.45, "#f08b54", 1.2, 1.2, 0.75);
+        addCube(x + 0.7, 6.35, z + 0.7, "#e66c47", 0.7, 0.7, 0.48);
+        addCube(x + 0.82, 1.05, z - 0.04, "#5d9da1", 0.55, 0.08, 0.88);
+        addCube(x + 1.35, 3.0, z - 0.04, "#79cbd2", 0.45, 0.08, 0.72);
+      }
+
+      function addBoat(x, z) {
+        addCube(x, 0.28, z, "#f0d5ad", 3.2, 1.05, 0.45);
+        addCube(x + 0.35, 0.7, z + 0.2, "#dbbd91", 2.5, 0.62, 0.32);
+        addCube(x + 1.25, 1.0, z + 0.28, "#8a674d", 0.18, 0.18, 2.1);
+        addCube(x + 1.45, 2.1, z + 0.15, "#f5eee0", 0.85, 0.12, 0.95);
+        addCube(x - 0.5, 0.65, z + 0.25, "#527f91", 0.7, 0.18, 0.18);
+      }
+      function addPagoda(x, z) {
+        addCube(x, 0.5, z, "#efe4ce", 3.2, 3.2, 1.55);
+        addCube(x - 0.4, 2.0, z - 0.4, palette.roofPurple, 4.0, 4.0, 0.55);
+        addCube(x + 0.15, 2.55, z + 0.15, "#f0e3d0", 2.55, 2.55, 1.35);
+        addCube(x - 0.25, 3.85, z - 0.25, "#7c617b", 3.25, 3.25, 0.5);
+        addCube(x + 0.55, 4.35, z + 0.55, "#f4e8d6", 1.8, 1.8, 1.05);
+        addCube(x + 0.15, 5.35, z + 0.15, "#8a6786", 2.6, 2.6, 0.42);
+        addCube(x + 1.25, 5.75, z + 1.25, "#d6a84a", 0.5, 0.5, 1.35, 1);
+      }
+
+      function buildScene() {
+        cubes.length = 0;
+        const insideIsland = (x, z) => {
+          const dx = Math.abs(x - 10.5);
+          const dz = Math.abs(z - 10.5);
+          return dx <= 9.4 && dz <= 9.4 && dx + dz <= 15.1;
+        };
+
+        for (let x = 0; x < 22; x += 1) {
+          for (let z = 0; z < 22; z += 1) {
+            if (!insideIsland(x, z)) continue;
+            const soil = (x + z) % 3 === 0 ? "#686f5e" : "#7b806d";
+            addCube(x, -2.05, z, soil, 1, 1, 0.9);
+            addCube(x, -1.15, z, (x + z) % 2 ? "#8b8e78" : "#747968", 1, 1, 0.9);
+          }
+        }
+
+        for (let x = 0; x < 22; x += 1) {
+          for (let z = 0; z < 22; z += 1) {
+            if (!insideIsland(x, z)) continue;
+            const edge = x < 3 || x > 18 || z < 3 || z > 18;
+            let color;
+            if (x > 14 && z > 2 && z < 6) {
+              color = palette.water[(x + z) % palette.water.length];
+            } else if (edge) {
+              color = ["#efd8a8", "#f5dfb6", "#e6ca97"][(x + z) % 3];
+            } else if ((x > 9 && x < 13 && z > 2 && z < 17) || (z > 8 && z < 11 && x > 3 && x < 18)) {
+              color = palette.path[(x + z) % palette.path.length];
+            } else {
+              color = palette.grass[(x * 3 + z) % palette.grass.length];
+            }
+            addCube(x, 0, z, color, 1, 1, 0.35);
+          }
+        }
+
+        for (let i = 0; i < 8; i += 1) {
+          addCube(17.2, -0.5 - i * 0.72, 5.1, palette.water[i % palette.water.length], 0.72, 0.72, 0.76, 0.35);
+        }
+        addCube(17.05, -0.8, 5.25, "#b8e8f3", 1.0, 1.0, 0.25, 0.4);
+        addHouse(3, 3, "#f5e7cf", "#4f7881", 1.0);
+        addHouse(6, 4, "#f6e1d2", "#c06e82", 0.86);
+        addHouse(3, 7, "#f1e7d8", "#725c78", 0.92);
+        addHouse(6, 8, "#f8ead8", "#527b75", 0.82);
+        addPagoda(8.5, 1.5);
+        addLighthouse(17.4, 16.6);
+        addBoat(17.0, 8.0);
+
+        addTree(1.4, 12.5, true);
+        addTree(5.2, 13.4, true);
+        addTree(18, 14.5, true);
+        addTree(19, 4, false);
+        addTree(2.5, 18, true);
+
+        addTorii(12.3, 12.2);
+        addCube(13.3, 0.45, 9.8, "#a87955", 1.0, 3.4, 0.3);
+        addCube(13.5, 0.4, 9.6, "#c29468", 0.8, 0.35, 0.38);
+        addCube(13.5, 0.4, 10.6, "#c29468", 0.8, 0.35, 0.38);
+        addCube(13.5, 0.4, 11.6, "#c29468", 0.8, 0.35, 0.38);
+        addCube(13.5, 0.4, 12.6, "#c29468", 0.8, 0.35, 0.38);
+
+        addLantern(10.2, 7.2);
+        addLantern(12.4, 7.2);
+        addLantern(10.2, 14.1);
+        addLantern(12.4, 14.1);
+
+        addCube(9.4, 1.0, 15.8, "#edf0f5", 0.8, 0.8, 1.7);
+        addCube(9.3, 2.7, 15.7, "#7d565f", 1.0, 1.0, 0.85);
+        addCube(9.5, 1.0, 15.9, "#f19ab6", 0.58, 0.58, 0.8);
+        addCube(9.7, 1.0, 16.0, "#f8d6e3", 0.32, 0.32, 0.55);
+        addCube(9.3, 0.45, 15.7, "#5b4a74", 0.45, 0.45, 0.55);
+        addCube(9.8, 0.45, 16.1, "#5b4a74", 0.45, 0.45, 0.55);
+
+        for (let i = 0; i < 7; i += 1) {
+          addCube(18 + (i % 3), 0.8 + i * 0.35, 17 - i * 0.7, i % 2 ? "#7eaa8a" : "#6d9b82", 1.8, 1.8, 1.5);
+        }
+      }
+
+      function project(x, y, z) {
+        const cos = Math.cos(yaw);
+        const sin = Math.sin(yaw);
+        const wx = x - 10.5;
+        const wz = z - 10.5;
+        const rx = wx * cos - wz * sin;
+        const rz = wx * sin + wz * cos;
+        const fit = Math.max(0.56, Math.min(1, width / 940));
+        const scale = 22 * fit * zoom;
+        return {
+          x: width * 0.5 + rx * scale,
+          y: height * 0.56 + (rz * 0.56 - y) * scale
+        };
+      }
+
+      function polygon(points, fill) {
+        ctx.beginPath();
+        ctx.moveTo(points[0].x, points[0].y);
+        for (let i = 1; i < points.length; i += 1) ctx.lineTo(points[i].x, points[i].y);
+        ctx.closePath();
+        ctx.fillStyle = fill;
+        ctx.fill();
+        ctx.strokeStyle = "rgba(255,255,255,.10)";
+        ctx.lineWidth = 0.7;
+        ctx.stroke();
+      }
+
+      function drawCube(cube) {
+        const p = (dx, dy, dz) => project(cube.x + dx, cube.y + dy, cube.z + dz);
+        const top = [p(0, cube.h, 0), p(cube.w, cube.h, 0), p(cube.w, cube.h, cube.d), p(0, cube.h, cube.d)];
+        const viewX = Math.cos(yaw);
+        const viewZ = Math.sin(yaw);
+        const xFace = viewX >= 0
+          ? [p(cube.w, 0, 0), p(cube.w, 0, cube.d), p(cube.w, cube.h, cube.d), p(cube.w, cube.h, 0)]
+          : [p(0, 0, 0), p(0, cube.h, 0), p(0, cube.h, cube.d), p(0, 0, cube.d)];
+        const zFace = viewZ >= 0
+          ? [p(0, 0, cube.d), p(cube.w, 0, cube.d), p(cube.w, cube.h, cube.d), p(0, cube.h, cube.d)]
+          : [p(0, 0, 0), p(cube.w, 0, 0), p(cube.w, cube.h, 0), p(0, cube.h, 0)];
+
+        if (cube.glow) {
+          ctx.shadowColor = cube.color;
+          ctx.shadowBlur = 16;
+        }
+        polygon(xFace, colorShift(cube.color, -48));
+        polygon(zFace, colorShift(cube.color, -25));
+        polygon(top, colorShift(cube.color, 22));
+        ctx.shadowBlur = 0;
+      }
+
+      function drawPetals(time) {
+        ctx.save();
+        for (const petal of petals) {
+          const x = (petal.x * width + Math.sin(time * 0.0007 + petal.phase) * 46 + time * petal.speed * 0.018) % (width + 80) - 40;
+          const y = (petal.y * height + Math.cos(time * 0.001 + petal.phase) * 18 + time * petal.speed * 0.012) % (height + 70) - 35;
+          ctx.globalAlpha = 0.72;
+          ctx.fillStyle = petal.color;
+          ctx.beginPath();
+          ctx.ellipse(x, y, 3.8, 1.9, petal.angle, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.restore();
+      }
+
+      function drawFireflies(time) {
+        ctx.save();
+        for (const fly of fireflies) {
+          const x = width * fly.x + Math.sin(time * 0.0012 + fly.phase) * 18;
+          const y = height * fly.y + Math.cos(time * 0.001 + fly.phase) * 12;
+          const glow = ctx.createRadialGradient(x, y, 0, x, y, 16);
+          glow.addColorStop(0, "rgba(255,248,171,.95)");
+          glow.addColorStop(0.25, "rgba(255,230,122,.42)");
+          glow.addColorStop(1, "rgba(255,230,122,0)");
+          ctx.fillStyle = glow;
+          ctx.beginPath();
+          ctx.arc(x, y, 16, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.restore();
+      }
+
+      function drawSky(time) {
+        const sunX = width * 0.79;
+        const sunY = height * 0.16;
+        const glow = ctx.createRadialGradient(sunX, sunY, 4, sunX, sunY, 120);
+        glow.addColorStop(0, "rgba(255,255,255,.95)");
+        glow.addColorStop(0.22, "rgba(255,242,204,.58)");
+        glow.addColorStop(1, "rgba(255,242,204,0)");
+        ctx.fillStyle = glow;
+        ctx.fillRect(0, 0, width, height);
+
+        ctx.save();
+        ctx.globalAlpha = 0.16;
+        ctx.fillStyle = "#ffffff";
+        for (let i = 0; i < 6; i += 1) {
+          const x = (width * (0.02 + i * 0.18) + time * (0.002 + i * 0.0002)) % (width + 220) - 110;
+          const y = height * (0.12 + (i % 3) * 0.055);
+          ctx.beginPath();
+          ctx.ellipse(x, y, 62 + i * 5, 17 + i * 2, -0.12, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.restore();
+      }
+
+      function render(time = 0) {
+        ctx.clearRect(0, 0, width, height);
+        drawSky(time);
+
+        const depthCos = Math.cos(yaw);
+        const depthSin = Math.sin(yaw);
+        const sorted = cubes.slice();
+        for (const cube of sorted) {
+          cube._depth = (cube.x - 10.5) * depthSin + (cube.z - 10.5) * depthCos;
+        }
+        sorted.sort((a, b) => (a._depth - b._depth) || (a.y - b.y));
+
+        for (const cube of sorted) drawCube(cube);
+        drawFireflies(time);
+        drawPetals(time);
+        requestAnimationFrame(render);
+      }
+
+      function resize() {
+        dpr = Math.min(window.devicePixelRatio || 1, 2);
+        width = canvas.clientWidth;
+        height = canvas.clientHeight;
+        canvas.width = Math.floor(width * dpr);
+        canvas.height = Math.floor(height * dpr);
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      }
+
+      const messages = [
+        "风从山樱间吹过，月影村今天也很安静。",
+        "听说神社的灯笼会指引迷路的旅人。",
+        "河水映着晚霞的时候，村子会变成金色。",
+        "铃喵说，仓库后面藏着一条通往山上的旧路。",
+        "今晚在茶屋休息吧，明天再继续赶路。"
+      ];
+      let messageIndex = 0;
+      setInterval(() => {
+        messageIndex = (messageIndex + 1) % messages.length;
+        dialogue.textContent = messages[messageIndex];
+      }, 5200);
+
+      document.querySelectorAll(".time-switch button").forEach((button, index) => {
+        button.addEventListener("click", () => {
+          document.querySelectorAll(".time-switch button").forEach((item) => item.classList.remove("is-active"));
+          button.classList.add("is-active");
+          document.querySelector(".voxel-game").dataset.time = ["day", "evening", "night"][index];
+        });
+      });
+
+      document.querySelectorAll(".side-controls button").forEach((button) => {
+        button.addEventListener("click", () => {
+          const action = button.dataset.action;
+          if (action === "zoom-in") zoom = Math.min(1.75, zoom + 0.12);
+          if (action === "zoom-out") zoom = Math.max(0.62, zoom - 0.12);
+          if (action === "left") yaw -= 0.18;
+          if (action === "right") yaw += 0.18;
+          if (action === "reset") { yaw = -0.72; zoom = 1; }
+        });
+      });
+
+      canvas.addEventListener("pointerdown", (event) => {
+        dragging = true;
+        lastX = event.clientX;
+        lastY = event.clientY;
+        canvas.setPointerCapture(event.pointerId);
+      });
+
+      canvas.addEventListener("pointermove", (event) => {
+        if (!dragging) return;
+        yaw += (event.clientX - lastX) * 0.006;
+        lastX = event.clientX;
+        lastY = event.clientY;
+      });
+
+      canvas.addEventListener("pointerup", (event) => {
+        dragging = false;
+        canvas.releasePointerCapture(event.pointerId);
+      });
+
+      canvas.addEventListener("pointercancel", () => {
+        dragging = false;
+      });
+
+      canvas.addEventListener("wheel", (event) => {
+        event.preventDefault();
+        zoom = Math.max(0.62, Math.min(1.75, zoom - event.deltaY * 0.001));
+      }, { passive: false });
+
+      for (let i = 0; i < 48; i += 1) {
+        petals.push({
+          x: Math.random(),
+          y: Math.random(),
+          phase: Math.random() * Math.PI * 2,
+          speed: 0.45 + Math.random() * 0.9,
+          angle: Math.random() * Math.PI,
+          color: i % 2 ? "#ffc7dc" : "#ffd9e7"
+        });
+      }
+
+      for (let i = 0; i < 9; i += 1) {
+        fireflies.push({ x: 0.08 + Math.random() * 0.84, y: 0.35 + Math.random() * 0.42, phase: Math.random() * Math.PI * 2 });
+      }
+
+      buildScene();
+      resize();
+      window.addEventListener("resize", resize);
+      requestAnimationFrame(render);
+    })();
+  </script>
+</body>
+</html>

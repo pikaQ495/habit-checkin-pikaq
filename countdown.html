@@ -4,6 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>倒计时 & 时间轴</title>
+  <script>if (new URLSearchParams(location.search).has("embedded")) document.documentElement.classList.add("embedded-document");</script>
   <style>
     :root {
       color-scheme: light;
@@ -18,6 +19,26 @@
       --shadow: 0 14px 34px rgba(214, 130, 162, 0.12);
     }
 
+    html.embedded-document body {
+      background: transparent;
+    }
+
+    html.embedded-document .topbar {
+      display: none;
+    }
+
+    html.embedded-document .page-shell {
+      width: 100%;
+      padding: 0;
+    }
+
+    html.embedded-document .page-title {
+      margin-top: 0;
+    }
+
+    html.embedded-document .card {
+      box-shadow: 0 10px 26px rgba(214, 130, 162, 0.09);
+    }
     * { box-sizing: border-box; }
 
     body {
@@ -449,6 +470,19 @@
       top: 0;
       bottom: 0;
       height: auto;
+      pointer-events: auto;
+      cursor: ew-resize;
+      touch-action: none;
+    }
+
+    .timeline-rows-area .timeline-playhead::after {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 50%;
+      width: 30px;
+      content: "";
+      transform: translateX(-50%);
     }
     .timeline-scroll {
       margin-top: 13px;
@@ -518,6 +552,12 @@
       font-size: 8px;
     }
 
+    .timeline-axis-label,
+    .timeline-row-label {
+      position: relative;
+      left: 0;
+      will-change: transform;
+    }
     .timeline-row-track {
       overflow: hidden;
     }
@@ -533,6 +573,12 @@
       background: linear-gradient(180deg, #f17ca9, #ffd169);
       box-shadow: 0 0 10px rgba(234, 102, 156, 0.55);
       pointer-events: none;
+    }
+    .timeline-axis-label,
+    .timeline-row-label {
+      position: relative;
+      left: 0;
+      will-change: transform;
     }
     .timeline-row-track {
       position: relative;
@@ -665,13 +711,19 @@
     }
 
     .timeline-day {
-      width: 52px;
-      flex: 0 0 52px;
+      width: 68px;
+      flex: 0 0 68px;
       padding: 12px 0 10px;
       font-size: 13px;
     }
 
     .timeline-day small { margin-top: 3px; font-size: 10px; }
+    .timeline-axis-label,
+    .timeline-row-label {
+      position: relative;
+      left: 0;
+      will-change: transform;
+    }
     .timeline-row-track {
       overflow: hidden;
     }
@@ -688,9 +740,15 @@
       box-shadow: 0 0 10px rgba(234, 102, 156, 0.55);
       pointer-events: none;
     }
+    .timeline-axis-label,
+    .timeline-row-label {
+      position: relative;
+      left: 0;
+      will-change: transform;
+    }
     .timeline-row-track {
       height: 78px;
-      background: repeating-linear-gradient(to right, rgba(246, 223, 233, 0.45) 0 1px, transparent 1px 52px);
+      background: repeating-linear-gradient(to right, rgba(246, 223, 233, 0.45) 0 1px, transparent 1px 68px);
     }
 
     .timeline-bar { top: 12px; height: 52px; border-radius: 14px; }
@@ -894,6 +952,108 @@
     input[data-picker]:focus {
       background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect x='4' y='5.5' width='16' height='14' rx='3' fill='none' stroke='%23e04f8b' stroke-width='1.8'/%3E%3Cpath d='M8 3.5v4M16 3.5v4M4 10h16' fill='none' stroke='%23e04f8b' stroke-width='1.8' stroke-linecap='round'/%3E%3Cpath d='M12 14.2c.9-.7 2.2-.4 2.8.5.6-1 2-.9 2.5-.1.6.9.3 2.1-.7 2.7L12 20l-4.6-2.7c-1-.6-1.3-1.8-.7-2.7.5-.8 1.9-.9 2.5.1.6-.9 1.9-1.2 2.8-.5Z' fill='%23ff7fb1'/%3E%3C/svg%3E");
     }
+    .color-fields {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .color-field label {
+      display: block;
+      margin-bottom: 6px;
+      color: #a6758c;
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    .color-field input[type="color"] {
+      width: 100%;
+      height: 42px;
+      padding: 4px;
+      border: 1.5px solid #f2dce7;
+      border-radius: 12px;
+      background: #fff;
+      cursor: pointer;
+    }
+    .timeline-today-button {
+      cursor: pointer;
+      transition: color 160ms ease, transform 160ms ease;
+    }
+
+    .timeline-today-button:hover,
+    .timeline-today-button:focus-visible {
+      color: #d95f98;
+      outline: none;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      transform: scale(1.04);
+    }
+    .action-sheet-popover {
+      position: fixed;
+      z-index: 30;
+      width: min(78vw, 320px);
+      padding: 0;
+      border-radius: 16px;
+      background: #fffafc;
+      box-shadow: 0 14px 34px rgba(87, 51, 70, 0.22);
+    }
+
+    .action-sheet-popover[hidden] { display: none; }
+
+    .action-sheet-popover .modal-card {
+      width: auto;
+      padding: 10px;
+      border-radius: 16px;
+      box-shadow: none;
+    }
+
+    .action-sheet-popover .modal-head { margin-bottom: 8px; }
+    .action-sheet-popover .modal-head h3 { font-size: 13px; }
+    .action-sheet-popover .modal-close { width: 26px; height: 26px; font-size: 17px; }
+
+    .action-sheet-popover .action-list {
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+    }
+
+    .action-sheet-popover .action-button {
+      height: 36px;
+      padding: 0 8px;
+      border-radius: 10px;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+    .countdown-card {
+      align-items: center;
+      text-align: center;
+    }
+
+    .countdown-card .countdown-name {
+      width: 100%;
+      padding-right: 30px;
+      padding-left: 8px;
+      overflow: hidden;
+      text-align: center;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .countdown-card .countdown-days {
+      margin: 3px 0;
+      font-size: 17px;
+      line-height: 1.05;
+      white-space: nowrap;
+    }
+
+    .countdown-card .countdown-deadline {
+      margin-top: 0;
+      overflow: hidden;
+      font-size: 9px;
+      line-height: 1.25;
+      text-align: center;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
     @media (max-width: 560px) {
       .form-grid { grid-template-columns: 1fr; }
       .field.full { grid-column: auto; }
@@ -905,18 +1065,18 @@
   <div class="page-shell">
     <div class="topbar">
       <a class="back-link" href="index.html">← 返回打卡</a>
-      <span>✨ 粉黄计划本</span>
+      <span>哼，本喵只是顺便盯着你别偷懒喵</span>
     </div>
 
     <h1 class="page-title">
       倒计时 & 时间轴
-      <small>把重要日子和长期计划都装进去吧</small>
+      <small>才、才不是特意帮你，只是顺便提醒你一下而已喵。</small>
     </h1>
 
     <section class="card" aria-label="倒计时">
       <div class="card-heading">
         <h2>⏳ 倒计时</h2>
-        <span>点击 + 添加</span>
+        
       </div>
       <div id="countdownGrid" class="countdown-grid"></div>
     </section>
@@ -933,8 +1093,8 @@
             <input id="countdownTitle" type="text" maxlength="20" placeholder="例如：四级考试">
           </div>
           <div class="field full">
-            <label for="countdownTarget">目标日期和时间</label>
-            <input id="countdownTarget" type="text" readonly data-picker="datetime" placeholder="选择日期和时间" autocomplete="off">
+            <label for="countdownTarget">目标日期</label>
+            <input id="countdownTarget" type="text" readonly data-picker="date" placeholder="选择日期" autocomplete="off">
           </div>
           <button class="pink-button" type="submit">保存倒计时</button>
         </form>
@@ -963,8 +1123,8 @@
             <input id="editTitle" type="text" maxlength="20">
           </div>
           <div class="field full" id="editTargetField">
-            <label for="editTarget">目标日期和时间</label>
-            <input id="editTarget" type="text" readonly data-picker="datetime" placeholder="选择日期和时间" autocomplete="off">
+            <label for="editTarget">目标日期</label>
+            <input id="editTarget" type="text" readonly data-picker="date" placeholder="选择日期" autocomplete="off">
           </div>
           <div class="field" id="editStartField">
             <label for="editStart">开始日期</label>
@@ -973,6 +1133,16 @@
           <div class="field" id="editEndField">
             <label for="editEnd">结束日期</label>
             <input id="editEnd" type="text" readonly data-picker="date" placeholder="选择日期" autocomplete="off">
+          </div>
+          <div class="field full color-fields" id="editColorFields">
+            <div class="color-field">
+              <label for="editBaseColor">未完成颜色</label>
+              <input id="editBaseColor" type="color" value="#fff0f5">
+            </div>
+            <div class="color-field">
+              <label for="editDoneColor">完成后颜色</label>
+              <input id="editDoneColor" type="color" value="#f27ea9">
+            </div>
           </div>
           <button class="pink-button" type="submit">保存修改</button>
         </form>
@@ -1003,7 +1173,7 @@
     <section class="card" aria-label="时间轴">
       <div class="card-heading">
         <h2>📊 时间轴进度</h2>
-        <span>从今天开始计算</span>
+        <span id="timelineTodayButton" class="timeline-today-button" role="button" tabindex="0" title="回到今天">从今天开始计算</span>
       </div>
       <div id="timelineScroll" class="timeline-scroll"></div>
       <div id="timelineEmpty" class="empty">还没有时间轴，添加一个计划开始追踪吧。</div>
@@ -1045,6 +1215,7 @@
         timelineEnd: document.getElementById("timelineEnd"),
         timelineScroll: document.getElementById("timelineScroll"),
         timelineEmpty: document.getElementById("timelineEmpty"),
+        timelineTodayButton: document.getElementById("timelineTodayButton"),
         actionSheet: document.getElementById("actionSheet"),
         actionList: document.getElementById("actionList"),
         closeActionSheet: document.getElementById("closeActionSheet"),
@@ -1058,6 +1229,9 @@
         editStartField: document.getElementById("editStartField"),
         editEnd: document.getElementById("editEnd"),
         editEndField: document.getElementById("editEndField"),
+        editColorFields: document.getElementById("editColorFields"),
+        editBaseColor: document.getElementById("editBaseColor"),
+        editDoneColor: document.getElementById("editDoneColor"),
         closeEditModal: document.getElementById("closeEditModal"),
         datePickerModal: document.getElementById("datePickerModal"),
         pickerPrev: document.getElementById("pickerPrev"),
@@ -1100,6 +1274,17 @@
         return `${date.getMonth() + 1}月${date.getDate()}日 ${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
       }
 
+      function parseCountdownTarget(value) {
+        const datePart = String(value || "").split("T")[0];
+        return new Date(`${datePart}T23:59:59`);
+      }
+
+      function formatCountdownDate(value) {
+        const datePart = String(value || "").split("T")[0];
+        const date = new Date(`${datePart}T00:00:00`);
+        if (Number.isNaN(date.getTime())) return "";
+        return `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日`;
+      }
       function formatDate(value) {
         const date = new Date(`${value}T00:00:00`);
         if (Number.isNaN(date.getTime())) return "";
@@ -1145,7 +1330,7 @@
         elements.countdownGrid.replaceChildren();
 
         items.forEach((item) => {
-          const target = new Date(item.target);
+          const target = parseCountdownTarget(item.target);
           const diff = target - new Date();
           const card = document.createElement("article");
           card.className = "countdown-card";
@@ -1157,7 +1342,7 @@
 
           const deadline = document.createElement("div");
           deadline.className = "countdown-deadline";
-          deadline.textContent = `截止：${formatDateTime(item.target)}`;
+          deadline.textContent = `截止：${formatCountdownDate(item.target)}`;
 
           const days = document.createElement("div");
           days.className = "countdown-days";
@@ -1172,7 +1357,7 @@
           card.addEventListener("click", (event) => {
             if (event.target.closest(".delete-button")) return;
             openActionSheet("countdown", item.id, event.currentTarget);
-          });          card.append(name, deadline, days, createDeleteButton("delete-countdown", item.id, `删除${item.title}`));
+          });          card.append(name, days, deadline, createDeleteButton("delete-countdown", item.id, `删除${item.title}`));
           elements.countdownGrid.append(card);
         });
 
@@ -1198,11 +1383,13 @@
         if (!items.length) return;
 
         const today = startOfToday();
+        const earliestStart = new Date(Math.min(...items.map((item) => new Date(`${item.start}T00:00:00`).getTime())));
         const maxEnd = new Date(Math.max(...items.map((item) => new Date(`${item.end}T00:00:00`).getTime())));
-        const rangeStart = today;
+        const rangeStart = new Date(Math.min(earliestStart.getTime(), today.getTime() - 30 * 86400000));
         const rangeEnd = new Date(Math.max(maxEnd.getTime(), today.getTime() + 30 * 86400000));
         const dayCount = Math.floor((rangeEnd - rangeStart) / 86400000) + 1;
-        const dayWidth = 52;
+        const dayWidth = 68;
+        const todayOffset = Math.floor((today - rangeStart) / 86400000);
 
         const calendar = document.createElement("div");
         calendar.className = "timeline-calendar";
@@ -1278,9 +1465,7 @@
 
           bar.addEventListener("click", (event) => {
             event.stopPropagation();
-            const shouldShow = !actionRow.classList.contains("is-visible");
-            document.querySelectorAll(".timeline-actions").forEach((row) => row.classList.remove("is-visible"));
-            if (shouldShow) actionRow.classList.add("is-visible");
+            openActionSheet("timeline", item.id, event.currentTarget);
           });          bar.append(fill, barLabel);
           track.append(bar);
           row.append(label, track);
@@ -1291,6 +1476,7 @@
           const actionDefs = [
             ["rename", "✏️"],
             ["edit-time", "📅"],
+            ["edit-color", "🎨"],
             ["shift-left", "◀"],
             ["shift-right", "▶"],
             ["delete", "×", true]
@@ -1316,6 +1502,13 @@
         const playhead = document.createElement("div");
         playhead.className = "timeline-playhead";
         rowsContainer.append(playhead);
+        elements.timelineScroll.dataset.todayLeft = String(todayOffset * dayWidth);
+        elements.timelineScroll.scrollLeft = todayOffset * dayWidth;
+        updatePlayheadPosition();
+        requestAnimationFrame(() => {
+          elements.timelineScroll.scrollLeft = todayOffset * dayWidth;
+          updatePlayheadPosition();
+        });
 
 
       }      let selectedActionItem = null;
@@ -1344,7 +1537,7 @@
 
         elements.actionList.append(
           createActionButton("✏️ 重命名", "rename"),
-          createActionButton(type === "countdown" ? "🕒 修改目标时间" : "📅 修改时间", "edit-time")
+          createActionButton(type === "countdown" ? "📅 修改目标日期" : "📅 修改时间", "edit-time")
         );
 
         if (type === "countdown") {
@@ -1354,6 +1547,7 @@
           );
         } else {
           elements.actionList.append(
+            createActionButton("🎨 修改颜色", "edit-color"),
             createActionButton("◀ 整体前移1天", "shift-left"),
             createActionButton("整体后移1天 ▶", "shift-right")
           );
@@ -1365,11 +1559,21 @@
           const sheet = elements.actionSheet;
           const anchorRect = anchor.getBoundingClientRect();
           const sheetRect = sheet.getBoundingClientRect();
-          let left = anchorRect.left;
           let top = anchorRect.bottom + 8;
-          if (left + sheetRect.width > window.innerWidth - 8) left = window.innerWidth - sheetRect.width - 8;
-          if (top < 8) top = 8;
-          sheet.style.left = `${left}px`;
+          if (top + sheetRect.height > window.innerHeight - 8) {
+            top = Math.max(8, window.innerHeight - sheetRect.height - 8);
+          }
+
+          if (type === "timeline") {
+            sheet.style.left = "auto";
+            sheet.style.right = "8px";
+          } else {
+            sheet.style.right = "auto";
+            let left = anchorRect.left + 20;
+            if (left + sheetRect.width > window.innerWidth - 8) left = window.innerWidth - sheetRect.width - 8;
+            sheet.style.left = `${left}px`;
+          }
+
           sheet.style.top = `${top}px`;
         }
       }
@@ -1403,9 +1607,9 @@
           return;
         }
 
-        if (action === "rename" || action === "edit-time") {
+        if (action === "rename" || action === "edit-time" || action === "edit-color") {
           closeActionSheet();
-          openEditModal(type, id, action === "rename");
+          openEditModal(type, id, action === "rename", action === "edit-color");
           return;
         }
 
@@ -1435,7 +1639,7 @@
         }
       }
 
-      function openEditModal(type, id, focusTitle) {
+      function openEditModal(type, id, focusTitle, focusColor = false) {
         const item = type === "countdown" ? findCountdownItem(id) : findTimelineItem(id);
         if (!item) return;
         selectedEditItem = { type, id };
@@ -1446,8 +1650,11 @@
         elements.editTargetField.hidden = !isCountdown;
         elements.editStartField.hidden = isCountdown;
         elements.editEndField.hidden = isCountdown;
+        elements.editColorFields.hidden = isCountdown;
+        elements.editBaseColor.value = item.colorBase || "#fff0f5";
+        elements.editDoneColor.value = item.colorDone || "#f27ea9";
 
-        if (isCountdown) elements.editTarget.value = item.target;
+        if (isCountdown) elements.editTarget.value = String(item.target || "").split("T")[0];
         else {
           elements.editStart.value = item.start;
           elements.editEnd.value = item.end;
@@ -1455,6 +1662,7 @@
 
         elements.editModal.hidden = false;
         if (focusTitle) elements.editTitle.focus();
+        else if (focusColor) elements.editDoneColor.focus();
         else if (isCountdown) elements.editTarget.focus();
         else elements.editStart.focus();
       }
@@ -1506,6 +1714,9 @@
           item.title = title;
           item.start = start;
           item.end = end;
+          item.colorBase = elements.editBaseColor.value;
+          item.colorDone = elements.editDoneColor.value;
+
           persistData(TIMELINE_KEY, items);
           elements.editModal.hidden = true;
           selectedEditItem = null;
@@ -1712,19 +1923,61 @@
       });
 
       function updatePlayheadPosition() {
+        const scrollLeft = elements.timelineScroll.scrollLeft;
+        elements.timelineScroll.querySelectorAll(".timeline-axis-label, .timeline-row-label").forEach((label) => {
+          label.style.transform = `translateX(${scrollLeft}px)`;
+        });
         const line = elements.timelineScroll.querySelector(".timeline-playhead");
-        if (line) line.style.left = `${126 + elements.timelineScroll.scrollLeft}px`;
+        if (line) line.style.left = `${126 + scrollLeft}px`;
       }
       elements.timelineStart.value = toDateInputValue(new Date());
       elements.timelineEnd.value = toDateInputValue(new Date(Date.now() + 7 * 86400000));
-      elements.countdownTarget.value = toDateTimeInputValue(new Date(Date.now() + 30 * 86400000));
+      elements.countdownTarget.value = toDateInputValue(new Date(Date.now() + 30 * 86400000));
       elements.countdownModal.hidden = true;
       elements.closeCountdownModal.addEventListener("click", () => {
         elements.countdownModal.hidden = true;
       });
       renderCountdowns();
       renderTimelines();
+      elements.timelineScroll.addEventListener("pointerdown", (event) => {
+        const line = event.target.closest(".timeline-playhead");
+        if (!line) return;
+        event.preventDefault();
+
+        const startX = event.clientX;
+        const startScrollLeft = elements.timelineScroll.scrollLeft;
+        line.setPointerCapture(event.pointerId);
+
+        const move = (moveEvent) => {
+          moveEvent.preventDefault();
+          elements.timelineScroll.scrollLeft = startScrollLeft + (moveEvent.clientX - startX);
+          updatePlayheadPosition();
+        };
+
+        const end = () => {
+          line.removeEventListener("pointermove", move);
+          line.removeEventListener("pointerup", end);
+          line.removeEventListener("pointercancel", end);
+        };
+
+        line.addEventListener("pointermove", move);
+        line.addEventListener("pointerup", end);
+        line.addEventListener("pointercancel", end);
+      });
       elements.timelineScroll.addEventListener("scroll", updatePlayheadPosition, { passive: true });
+      function scrollTimelineToToday() {
+        const todayLeft = Number(elements.timelineScroll.dataset.todayLeft || 0);
+        elements.timelineScroll.scrollLeft = todayLeft;
+        updatePlayheadPosition();
+      }
+
+      elements.timelineTodayButton.addEventListener("click", scrollTimelineToToday);
+      elements.timelineTodayButton.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          scrollTimelineToToday();
+        }
+      });
       window.setInterval(renderCountdowns, 60000);
     })();
   </script>
