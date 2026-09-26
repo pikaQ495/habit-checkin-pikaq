@@ -613,6 +613,9 @@
     .habit-check input:checked + .checkmark::after {
       opacity: 1;
       transform: translate(-50%, -50%) rotate(-4deg) scale(0.98);
+    }
+
+    .habit-check input:checked + .checkmark.is-stamping::after {
       animation: pawStamp 260ms cubic-bezier(.2, .9, .3, 1.25);
     }
 
@@ -1970,11 +1973,8 @@
         <small>猫猫监督中</small>
       </div>
       <nav class="sidebar-nav" aria-label="功能导航">
-        <button class="sidebar-link is-active" type="button" data-view="home">
-          <span class="sidebar-icon">🏮</span>
-          <span>主界面</span>
-        </button>
-        <button class="sidebar-link" type="button" data-view="tasks">
+        <!-- 主界面已暂时移除，voxel-village.html 保留以便之后恢复。 -->
+        <button class="sidebar-link is-active" type="button" data-view="tasks">
           <span class="sidebar-icon">✓</span>
           <span>任务打卡</span>
         </button>
@@ -1986,10 +1986,7 @@
       <div class="sidebar-note">今天也一起加油喵 ♥</div>
     </aside>
     <main class="app-main">
-      <div id="homeView" class="app-view is-active">
-        <iframe id="homeFrame" src="voxel-village.html?embedded=1" title="主界面"></iframe>
-      </div>
-      <div id="tasksView" class="app-view">
+      <div id="tasksView" class="app-view is-active">
         <div class="page-shell">
     <div id="storageNotice" class="storage-notice" role="status"></div>
 
@@ -2642,7 +2639,7 @@
         return button;
       }
 
-      function createCheckbox(habit, isChecked) {
+      function createCheckbox(habit, isChecked, animate = false) {
         const label = document.createElement("label");
         label.className = "habit-check";
 
@@ -2654,14 +2651,14 @@
         input.setAttribute("aria-label", `${habit.name}：${isChecked ? "已完成" : "未完成"}`);
 
         const mark = document.createElement("span");
-        mark.className = "checkmark";
+        mark.className = animate ? "checkmark is-stamping" : "checkmark";
         mark.setAttribute("aria-hidden", "true");
 
         label.append(input, mark);
         return label;
       }
 
-      function createHabitItem(habit, isChecked) {
+      function createHabitItem(habit, isChecked, animate = false) {
         const item = document.createElement("li");
         item.className = `habit-item${isChecked ? " is-done" : ""}`;
         item.dataset.id = habit.id;
@@ -2686,7 +2683,7 @@
         );
 
         content.append(name, status);
-        item.append(createCheckbox(habit, isChecked), content, actions);
+        item.append(createCheckbox(habit, isChecked, animate), content, actions);
         return item;
       }
 
@@ -2903,7 +2900,7 @@
         return confirm;
       }
 
-      function createCategoryCard(category, checkedIds) {
+      function createCategoryCard(category, checkedIds, animateHabitId = null) {
         const tasks = getCategoryHabits(category.id);
         const doneCount = tasks.filter((habit) => checkedIds.has(habit.id)).length;
         const card = document.createElement("section");
@@ -2927,7 +2924,7 @@
           } else if (editingTaskId === habit.id) {
             list.append(createEditItem(habit));
           } else {
-            list.append(createHabitItem(habit, checkedIds.has(habit.id)));
+            list.append(createHabitItem(habit, checkedIds.has(habit.id), habit.id === animateHabitId));
           }
         });
 
@@ -2944,7 +2941,7 @@
         return card;
       }
 
-      function render() {
+      function render(animateHabitId = null) {
         const checkedIds = getCheckedIds();
         const visibleHabits = state.habits.filter(isTaskAvailableToday);
         const total = visibleHabits.length;
@@ -2983,7 +2980,7 @@
         elements.emptyState.classList.toggle("is-visible", state.categories.length === 0);
         elements.categoryList.replaceChildren();
         state.categories.forEach((category) => {
-          elements.categoryList.append(createCategoryCard(category, checkedIds));
+          elements.categoryList.append(createCategoryCard(category, checkedIds, animateHabitId));
         });
 
         const taskEditInput = elements.categoryList.querySelector(".task-edit-input");
@@ -3001,14 +2998,15 @@
 
       function toggleHabit(id) {
         const checkedIds = getCheckedIds();
-        if (checkedIds.has(id)) checkedIds.delete(id);
+        const wasChecked = checkedIds.has(id);
+        if (wasChecked) checkedIds.delete(id);
         else checkedIds.add(id);
         setCheckedIds(checkedIds);
         persistState();
 
         const scrollX = window.scrollX;
         const scrollY = window.scrollY;
-        render();
+        render(wasChecked ? null : id);
 
         const restoreScroll = () => window.scrollTo(scrollX, scrollY);
         requestAnimationFrame(() => {
@@ -3345,10 +3343,8 @@
       const sidebarToggle = document.getElementById("sidebarToggle");
       const sidebarBackdrop = document.getElementById("sidebarBackdrop");
       const appSidebar = document.getElementById("appSidebar");
-      const homeView = document.getElementById("homeView");
       const tasksView = document.getElementById("tasksView");
       const countdownView = document.getElementById("countdownView");
-      const homeFrame = document.getElementById("homeFrame");
       const countdownFrame = document.getElementById("countdownFrame");
 
       function setSidebarOpen(open) {
@@ -3357,15 +3353,6 @@
         sidebarToggle.setAttribute("aria-expanded", String(open));
         sidebarToggle.setAttribute("aria-label", open ? "关闭菜单" : "打开菜单");
         document.body.classList.toggle("sidebar-open", open);
-      }
-      function resizeHomeFrame() {
-        try {
-          const doc = homeFrame.contentDocument;
-          if (!doc) return;
-          homeFrame.style.height = `${Math.max(760, doc.documentElement.scrollHeight + 10)}px`;
-        } catch (error) {
-          homeFrame.style.height = "900px";
-        }
       }
       function resizeCountdownFrame() {
         try {
@@ -3378,7 +3365,6 @@
       }
 
       function switchView(viewName) {
-        homeView.classList.toggle("is-active", viewName === "home");
         tasksView.classList.toggle("is-active", viewName === "tasks");
         countdownView.classList.toggle("is-active", viewName === "countdown");
         viewButtons.forEach((button) => {
@@ -3388,8 +3374,6 @@
         if (viewName === "countdown") {
           if (!countdownFrame.src) countdownFrame.src = countdownFrame.dataset.src;
           requestAnimationFrame(resizeCountdownFrame);
-        } else if (viewName === "home") {
-          requestAnimationFrame(resizeHomeFrame);
         }
 
         window.scrollTo({ top: 0, behavior: "smooth" });
@@ -3413,7 +3397,6 @@
       });
 
       countdownFrame.addEventListener("load", resizeCountdownFrame);
-      homeFrame.addEventListener("load", resizeHomeFrame);
       render();
     })();
   </script>

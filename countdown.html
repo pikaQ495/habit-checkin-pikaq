@@ -1059,6 +1059,107 @@
       .field.full { grid-column: auto; }
       .pink-button { grid-column: auto; }
     }
+
+    .timeline-viewport {
+      position: relative;
+      margin-top: 13px;
+    }
+
+    .timeline-viewport .timeline-scroll {
+      margin-top: 0;
+    }
+
+    /* The scrollable calendar keeps its left label column fixed. */
+    .timeline-scroll .timeline-axis-label,
+    .timeline-scroll .timeline-row-label {
+      opacity: 0;
+    }
+
+    .timeline-label-layer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 8;
+      width: 110px;
+      pointer-events: none;
+    }
+
+    .timeline-fixed-label {
+      position: absolute;
+      left: 0;
+      box-sizing: border-box;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 110px;
+      border-right: 1px solid #f2dce6;
+      color: #ad7890;
+      background: #fff7fb;
+      font-size: 12px;
+      font-weight: 850;
+      text-align: center;
+    }
+
+    .timeline-fixed-label:first-child {
+      border-radius: 15px 0 0 0;
+    }
+
+    .timeline-fixed-label.is-row:last-child {
+      border-radius: 0 0 0 15px;
+    }
+
+    .timeline-fixed-label.is-row {
+      color: #6c5361;
+      background: #fffdf9;
+      word-break: break-all;
+    }
+
+    /* Mobile browsers often hide the native horizontal scrollbar. */
+    .timeline-scroll {
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+
+    .timeline-scroll::-webkit-scrollbar {
+      display: none;
+      width: 0;
+      height: 0;
+    }
+
+    .timeline-scrollbar {
+      position: relative;
+      height: 14px;
+      margin: 8px 6px 0;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.88);
+      border-radius: 99px;
+      background: linear-gradient(90deg, #ffe8f2, #fff2d2);
+      box-shadow: inset 0 1px 3px rgba(210, 130, 162, 0.12);
+      touch-action: none;
+    }
+
+    .timeline-scrollbar[hidden] {
+      display: none;
+    }
+
+    .timeline-scrollbar-thumb {
+      position: absolute;
+      top: 2px;
+      bottom: 2px;
+      left: 0;
+      width: 30%;
+      min-width: 36px;
+      border-radius: 99px;
+      background: linear-gradient(90deg, #f17ca9, #ffc46f);
+      box-shadow: 0 2px 8px rgba(224, 105, 150, 0.28);
+      cursor: grab;
+      touch-action: none;
+    }
+
+    .timeline-scrollbar-thumb:active {
+      cursor: grabbing;
+      transform: scaleY(1.08);
+    }
   </style>
 </head>
 <body>
@@ -1175,7 +1276,13 @@
         <h2>📊 时间轴进度</h2>
         <span id="timelineTodayButton" class="timeline-today-button" role="button" tabindex="0" title="回到今天">从今天开始计算</span>
       </div>
-      <div id="timelineScroll" class="timeline-scroll"></div>
+      <div class="timeline-viewport">
+        <div id="timelineScroll" class="timeline-scroll"></div>
+        <div id="timelineLabelLayer" class="timeline-label-layer" aria-hidden="true"></div>
+      </div>
+      <div id="timelineScrollbar" class="timeline-scrollbar" hidden aria-hidden="true">
+        <span id="timelineScrollThumb" class="timeline-scrollbar-thumb"></span>
+      </div>
       <div id="timelineEmpty" class="empty">还没有时间轴，添加一个计划开始追踪吧。</div>
       <form id="timelineForm" class="form-grid" style="margin-top: 14px;">
         <div class="field full">
@@ -1214,6 +1321,9 @@
         timelineStart: document.getElementById("timelineStart"),
         timelineEnd: document.getElementById("timelineEnd"),
         timelineScroll: document.getElementById("timelineScroll"),
+        timelineLabelLayer: document.getElementById("timelineLabelLayer"),
+        timelineScrollbar: document.getElementById("timelineScrollbar"),
+        timelineScrollThumb: document.getElementById("timelineScrollThumb"),
         timelineEmpty: document.getElementById("timelineEmpty"),
         timelineTodayButton: document.getElementById("timelineTodayButton"),
         actionSheet: document.getElementById("actionSheet"),
@@ -1378,7 +1488,10 @@
       }      function renderTimelines() {
         const items = loadData(TIMELINE_KEY, []);
         elements.timelineScroll.replaceChildren();
+        elements.timelineLabelLayer.replaceChildren();
+        elements.timelineLabelLayer.style.height = "0px";
         elements.timelineEmpty.classList.toggle("is-visible", items.length === 0);
+        elements.timelineScrollbar.hidden = items.length === 0;
 
         if (!items.length) return;
 
@@ -1499,6 +1612,7 @@
         });
 
         elements.timelineScroll.append(calendar);
+        renderTimelineLabelLayer(calendar);
         const playhead = document.createElement("div");
         playhead.className = "timeline-playhead";
         rowsContainer.append(playhead);
@@ -1922,13 +2036,56 @@
         }
       });
 
+      function renderTimelineLabelLayer(calendar) {
+        const layer = elements.timelineLabelLayer;
+        const scroll = elements.timelineScroll;
+        if (!layer || !calendar || !scroll) return;
+
+        layer.replaceChildren();
+        const scrollRect = scroll.getBoundingClientRect();
+        let bottom = 0;
+        const appendLabel = (source, isRow) => {
+          const sourceRect = source.getBoundingClientRect();
+          const label = document.createElement("div");
+          label.className = `timeline-fixed-label${isRow ? " is-row" : ""}`;
+          label.textContent = source.textContent;
+          label.style.top = `${sourceRect.top - scrollRect.top}px`;
+          label.style.height = `${sourceRect.height}px`;
+          layer.append(label);
+          bottom = Math.max(bottom, sourceRect.bottom - scrollRect.top);
+        };
+
+        const axisLabel = calendar.querySelector(".timeline-axis-label");
+        if (axisLabel) appendLabel(axisLabel, false);
+        calendar.querySelectorAll(".timeline-row-label").forEach((rowLabel) => appendLabel(rowLabel, true));
+        layer.style.height = `${bottom}px`;
+      }
+
+      function updateTimelineScrollbar() {
+        const track = elements.timelineScrollbar;
+        const thumb = elements.timelineScrollThumb;
+        if (!track || !thumb || track.hidden) return;
+
+        const maxScroll = Math.max(0, elements.timelineScroll.scrollWidth - elements.timelineScroll.clientWidth);
+        if (!maxScroll) {
+          thumb.style.width = "100%";
+          thumb.style.left = "0";
+          return;
+        }
+
+        const visibleRatio = elements.timelineScroll.clientWidth / elements.timelineScroll.scrollWidth;
+        const thumbWidth = Math.max(12, Math.min(100, visibleRatio * 100));
+        const travel = Math.max(0, 100 - thumbWidth);
+        const thumbLeft = (elements.timelineScroll.scrollLeft / maxScroll) * travel;
+        thumb.style.width = `${thumbWidth}%`;
+        thumb.style.left = `${thumbLeft}%`;
+      }
+
       function updatePlayheadPosition() {
         const scrollLeft = elements.timelineScroll.scrollLeft;
-        elements.timelineScroll.querySelectorAll(".timeline-axis-label, .timeline-row-label").forEach((label) => {
-          label.style.transform = `translateX(${scrollLeft}px)`;
-        });
         const line = elements.timelineScroll.querySelector(".timeline-playhead");
         if (line) line.style.left = `${126 + scrollLeft}px`;
+        updateTimelineScrollbar();
       }
       elements.timelineStart.value = toDateInputValue(new Date());
       elements.timelineEnd.value = toDateInputValue(new Date(Date.now() + 7 * 86400000));
@@ -1965,6 +2122,45 @@
         line.addEventListener("pointercancel", end);
       });
       elements.timelineScroll.addEventListener("scroll", updatePlayheadPosition, { passive: true });
+      elements.timelineScrollbar.addEventListener("pointerdown", (event) => {
+        if (event.target === elements.timelineScrollThumb) return;
+        event.preventDefault();
+        const trackRect = elements.timelineScrollbar.getBoundingClientRect();
+        const thumbWidth = elements.timelineScrollThumb.getBoundingClientRect().width;
+        const travel = Math.max(1, trackRect.width - thumbWidth);
+        const maxScroll = Math.max(0, elements.timelineScroll.scrollWidth - elements.timelineScroll.clientWidth);
+        const left = Math.max(0, Math.min(travel, event.clientX - trackRect.left - thumbWidth / 2));
+        elements.timelineScroll.scrollLeft = (left / travel) * maxScroll;
+        updatePlayheadPosition();
+      });
+      elements.timelineScrollThumb.addEventListener("pointerdown", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        const startX = event.clientX;
+        const startScrollLeft = elements.timelineScroll.scrollLeft;
+        elements.timelineScrollThumb.setPointerCapture(event.pointerId);
+
+        const move = (moveEvent) => {
+          moveEvent.preventDefault();
+          const trackRect = elements.timelineScrollbar.getBoundingClientRect();
+          const thumbWidth = elements.timelineScrollThumb.getBoundingClientRect().width;
+          const travel = Math.max(1, trackRect.width - thumbWidth);
+          const maxScroll = Math.max(0, elements.timelineScroll.scrollWidth - elements.timelineScroll.clientWidth);
+          elements.timelineScroll.scrollLeft = startScrollLeft + ((moveEvent.clientX - startX) / travel) * maxScroll;
+          updatePlayheadPosition();
+        };
+
+        const end = () => {
+          elements.timelineScrollThumb.removeEventListener("pointermove", move);
+          elements.timelineScrollThumb.removeEventListener("pointerup", end);
+          elements.timelineScrollThumb.removeEventListener("pointercancel", end);
+        };
+
+        elements.timelineScrollThumb.addEventListener("pointermove", move);
+        elements.timelineScrollThumb.addEventListener("pointerup", end);
+        elements.timelineScrollThumb.addEventListener("pointercancel", end);
+      });
+      window.addEventListener("resize", updatePlayheadPosition);
       function scrollTimelineToToday() {
         const todayLeft = Number(elements.timelineScroll.dataset.todayLeft || 0);
         elements.timelineScroll.scrollLeft = todayLeft;
