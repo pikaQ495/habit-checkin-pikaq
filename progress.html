@@ -1,0 +1,1250 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
+  <title>哼，进步本</title>
+  <script>if (new URLSearchParams(location.search).has("embedded")) document.documentElement.classList.add("embedded-document");</script>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #57434f;
+      --muted: #a08191;
+      --pink: #f17ca9;
+      --pink-deep: #d95f95;
+      --pink-soft: #fff0f6;
+      --yellow: #ffd46f;
+      --mint: #9fd9c5;
+      --line: #f2dce6;
+      --card: rgba(255, 255, 255, 0.91);
+      --shadow: 0 14px 34px rgba(214, 130, 162, 0.12);
+    }
+
+    * { box-sizing: border-box; }
+    html.embedded-document body { background: transparent; }
+    html.embedded-document .topbar { display: none; }
+    html.embedded-document .page-shell { width: 100%; padding: 0; }
+    html.embedded-document .page-header { margin-top: 0; }
+
+    body {
+      min-height: 100vh;
+      margin: 0;
+      color: var(--ink);
+      font-family: "YouYuan", "幼圆", "Microsoft YaHei UI", "PingFang SC", sans-serif;
+      background:
+        radial-gradient(circle at 7% 4%, rgba(255, 180, 208, 0.38), transparent 25rem),
+        radial-gradient(circle at 95% 8%, rgba(255, 225, 139, 0.38), transparent 23rem),
+        linear-gradient(145deg, #fff7fa 0%, #fffaf0 52%, #ffeef5 100%);
+      background-attachment: fixed;
+    }
+
+    button, input, select, textarea { font: inherit; }
+    button { cursor: pointer; }
+    .page-shell { width: min(100% - 28px, 1040px); margin: 0 auto; padding: 26px 0 44px; }
+    .topbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+    .back-link { padding: 8px 12px; border-radius: 12px; color: #b26186; background: rgba(255, 255, 255, 0.72); box-shadow: 0 5px 14px rgba(214, 130, 162, 0.08); text-decoration: none; font-size: 13px; font-weight: 750; }
+    .topbar > span { color: #b8809a; font-size: 12px; font-weight: 650; }
+    .page-header { display: flex; align-items: flex-end; justify-content: space-between; gap: 18px; margin: 4px 0 18px; }
+    .eyebrow { margin: 0 0 5px; color: #d477a0; font-size: 10px; font-weight: 900; letter-spacing: 0.18em; }
+    .page-header h1 { margin: 0; color: #d95f95; font-size: 31px; letter-spacing: -0.05em; }
+    .lead { max-width: 560px; margin: 7px 0 0; color: #ae879a; font-size: 12px; line-height: 1.7; }
+    .summary-pill { display: flex; align-items: baseline; gap: 5px; flex: 0 0 auto; padding: 12px 15px; border: 1px solid rgba(255, 255, 255, 0.88); border-radius: 16px; color: #b27b96; background: linear-gradient(135deg, #fff9fc, #fff2d8); box-shadow: 0 9px 22px rgba(214, 130, 162, 0.10); font-size: 11px; }
+    .summary-pill strong { color: #e2689b; font-size: 20px; line-height: 1; }
+    .notebook-layout { display: grid; grid-template-columns: minmax(0, 1.18fr) minmax(320px, 0.82fr); gap: 18px; align-items: start; }
+    .notebook-card { padding: 18px; border: 1px solid rgba(255, 255, 255, 0.92); border-radius: 22px; background: var(--card); box-shadow: var(--shadow); backdrop-filter: blur(14px); }
+    .card-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 15px; }
+    .section-label { display: inline-block; margin-bottom: 4px; color: #d985a9; font-size: 10px; font-weight: 900; letter-spacing: 0.14em; }
+    .card-heading h2 { margin: 0; color: #c95c8c; font-size: 18px; letter-spacing: -0.03em; }
+    .card-heading p { margin: 5px 0 0; color: #ad8798; font-size: 11px; line-height: 1.5; }
+    .chat-date-bar { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px; padding: 9px 10px; border: 1px solid #f0d8e3; border-radius: 13px; background: #fff9fc; }
+    .chat-date-copy { display: flex; align-items: baseline; gap: 6px; min-width: 0; color: #b8879c; font-size: 10px; }
+    .chat-date-copy strong { color: #c86590; font-size: 13px; white-space: nowrap; }
+    .chat-date-controls { display: flex; align-items: center; gap: 6px; min-width: 0; }
+    .chat-date-controls input { width: 128px; height: 32px; padding: 0 7px; border: 1px solid #f0d6e2; border-radius: 10px; color: #b36d8e; background: #fff; font-size: 10px; outline: none; }
+    #chatDatePicker { width: 43px; padding: 0 4px; border-width: 2.67px; text-align: center; }
+    .chat-date-controls input:focus { border-color: #ec9fbe; box-shadow: 0 0 0 3px rgba(239, 125, 168, 0.10); }
+    .chat-date-controls button { height: 32px; padding: 0 10px; border: 0; border-radius: 10px; color: #fff; background: #ec86ad; font-size: 10px; font-weight: 850; }
+    .chat-date-controls button:disabled { cursor: default; opacity: 0.5; }
+    .chat-history-notice { margin: -2px 0 10px; padding: 8px 10px; border: 1px dashed #efcbdc; border-radius: 11px; color: #b97795; background: #fff6fa; font-size: 10px; line-height: 1.5; }
+    .chat-history-notice[hidden] { display: none; }
+    .modal { position: fixed; inset: 0; z-index: 80; display: flex; align-items: flex-end; justify-content: center; padding: 14px; background: rgba(91, 58, 74, 0.28); backdrop-filter: blur(4px); }
+    .modal[hidden] { display: none; }
+    .date-picker-card { width: min(100%, 380px); padding: 16px; border-radius: 24px; background: linear-gradient(150deg, #fff4f9, #fff9ec 55%, #ffeef5); box-shadow: 0 22px 55px rgba(151, 76, 112, 0.25); }
+    .date-picker-deco { margin-bottom: 8px; color: #e46b9d; font-size: 15px; text-align: center; }
+    .date-picker-deco span { color: #ffb3ce; animation: heartFloat 1.8s ease-in-out infinite; }
+    @keyframes heartFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+    .date-picker-head { display: flex; align-items: center; justify-content: space-between; margin: 4px 0 12px; }
+    .date-picker-head strong { color: #c85d8e; font-size: 16px; }
+    .date-picker-nav { display: grid; width: 34px; height: 34px; padding: 0; border: 0; border-radius: 12px; color: #fff; background: linear-gradient(135deg, #f17ca9, #ffc46f); box-shadow: 0 6px 13px rgba(223, 103, 155, 0.2); cursor: pointer; font-size: 22px; place-items: center; transition: transform 180ms cubic-bezier(.2, .9, .35, 1.3); }
+    .date-picker-nav:active { transform: scale(0.88) rotate(-6deg); }
+    .date-picker-week, .date-picker-days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; }
+    .date-picker-week { margin-bottom: 6px; color: #b7819b; font-size: 11px; font-weight: 850; text-align: center; }
+    .date-picker-day { justify-self: center; width: 38px; height: 38px; border: 0; border-radius: 12px; color: #6b5261; background: rgba(255, 255, 255, 0.78); cursor: pointer; font-weight: 750; transition: transform 180ms cubic-bezier(.2, .9, .35, 1.4), background 150ms ease, color 150ms ease, box-shadow 150ms ease; }
+    .date-picker-day:hover { background: #ffe5f0; transform: scale(1.08) rotate(-2deg); }
+    .date-picker-day.is-muted { color: #cfb5c1; background: transparent; }
+    .date-picker-day.has-records { border-radius: 50%; color: #b45f86; background: #ffd9e8; box-shadow: 0 4px 10px rgba(223, 103, 155, 0.16); }
+    .date-picker-day.has-records:hover { background: #ffcfe1; }
+    .date-picker-day.is-selected { color: #fff; background: linear-gradient(135deg, #f17ca9, #ffb46f); box-shadow: 0 6px 13px rgba(223, 103, 155, 0.24); transform: scale(1.04); }
+    .date-picker-day.is-future { color: #d7c6ce; background: transparent; cursor: not-allowed; opacity: 0.65; }
+    .date-picker-day.is-future:hover { transform: none; }
+    .date-picker-buttons { display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px; }
+    .date-picker-cancel, .date-picker-confirm { height: 38px; padding: 0 14px; border: 0; border-radius: 12px; font-weight: 850; cursor: pointer; }
+    .date-picker-cancel { color: #b17991; background: #f1e8ed; }
+    .date-picker-confirm { color: #fff; background: linear-gradient(135deg, #f17ca9, #ffb46f); box-shadow: 0 7px 15px rgba(223, 103, 155, 0.2); }
+    .organizer-card { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 10px; margin-bottom: 12px; padding: 11px 12px; border: 1px solid #f1dfb9; border-radius: 14px; background: linear-gradient(135deg, #fff9ec, #fff1f7); box-shadow: 0 5px 14px rgba(214, 130, 162, 0.06); }
+    .organizer-icon { display: grid; width: 30px; height: 30px; border-radius: 10px; color: #df719b; background: #ffe6f0; font-size: 17px; place-items: center; }
+    .organizer-card strong { display: block; color: #c7668e; font-size: 11px; }
+    .organizer-card p { overflow: hidden; margin: 3px 0 0; color: #a88975; font-size: 10px; line-height: 1.45; text-overflow: ellipsis; white-space: nowrap; }
+    .organizer-count { flex: 0 0 auto; padding: 4px 7px; border-radius: 99px; color: #c77a4e; background: #fff3cf; font-size: 9px; font-weight: 900; white-space: nowrap; }
+    .primary-button { flex: 0 0 auto; height: 38px; padding: 0 14px; border: 0; border-radius: 12px; color: #fff; background: linear-gradient(135deg, #ef78a5, #ffb96f); box-shadow: 0 8px 18px rgba(223, 103, 155, 0.18); font-size: 12px; font-weight: 850; transition: transform 160ms ease, filter 160ms ease; }
+    .add-entry-top { width: 100%; margin-bottom: 12px; }
+    .primary-button:hover { filter: saturate(1.08); transform: translateY(-1px); }
+    .category-bar { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 12px; }
+    .category-chip, .category-add { height: 29px; padding: 0 10px; border: 1px solid #f1dbe6; border-radius: 99px; color: #ae7893; background: #fff9fc; font-size: 11px; font-weight: 800; transition: background 150ms ease, color 150ms ease, transform 150ms ease; }
+    .category-chip:hover, .category-add:hover { transform: translateY(-1px); }
+    .category-chip.is-active { border-color: #f3b7cf; color: #fff; background: linear-gradient(135deg, #ef7da8, #ffc16f); }
+    .category-add { border-style: dashed; color: #d16c98; }
+    .category-form { display: flex; gap: 7px; margin: -4px 0 13px; }
+    .category-form[hidden] { display: none; }
+    .category-form input { min-width: 0; flex: 1; height: 34px; padding: 0 10px; border: 1px solid #f0d6e2; border-radius: 11px; color: #6b5261; background: #fff; outline: none; }
+    .category-form input:focus { border-color: #ec9fbe; box-shadow: 0 0 0 3px rgba(239, 125, 168, 0.10); }
+    .category-form button { height: 34px; padding: 0 12px; border: 0; border-radius: 11px; color: #fff; background: #ec86ad; font-size: 11px; font-weight: 850; }
+    .category-form button.secondary { color: #b27892; background: #f7e7ee; }
+    .entry-list, .message-list { display: grid; gap: 10px; }
+    .entry-card { position: relative; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 12px; align-items: start; padding: 13px 13px 13px 14px; border: 1px solid #f1dfe7; border-radius: 16px; background: linear-gradient(135deg, #fffafd, #fffdf8); box-shadow: 0 5px 14px rgba(214, 130, 162, 0.06); cursor: pointer; transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease; }
+    .entry-card:hover, .entry-card:focus-visible { border-color: #efbad0; box-shadow: 0 9px 22px rgba(214, 130, 162, 0.12); outline: none; transform: translateY(-1px); }
+    .entry-mark { display: grid; width: 32px; height: 32px; border-radius: 11px; color: #df719b; background: #ffe6f0; font-size: 18px; place-items: center; }
+    .entry-main { min-width: 0; }
+    .entry-meta { display: flex; align-items: center; gap: 7px; margin-bottom: 5px; }
+    .entry-category { max-width: 120px; overflow: hidden; padding: 3px 7px; border-radius: 99px; color: #bc668e; background: #fff0f6; font-size: 8px; font-weight: 900; text-overflow: ellipsis; white-space: nowrap; }
+    .entry-date { color: #c2a3b1; font-size: 9px; }
+    .entry-title { overflow: hidden; margin: 0; color: #674c5a; font-size: 13px; line-height: 1.35; text-overflow: ellipsis; white-space: nowrap; }
+    .entry-content { display: -webkit-box; overflow: hidden; margin: 6px 0 0; color: #a38796; font-size: 10px; line-height: 1.6; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+    .entry-edit-hint { color: #d695b1; font-size: 15px; line-height: 1; }
+    .entry-editor { padding: 15px; border: 1px solid #efbdd2; border-radius: 17px; background: linear-gradient(145deg, #fff9fc, #fffdf3); box-shadow: 0 9px 24px rgba(214, 130, 162, 0.10); }
+    .editor-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(130px, 0.55fr); gap: 10px; }
+    .field { display: grid; gap: 5px; margin-bottom: 10px; }
+    .field.full { grid-column: 1 / -1; }
+    .field label { color: #b17391; font-size: 10px; font-weight: 850; }
+    .field input, .field select, .field textarea { width: 100%; border: 1px solid #efd8e3; border-radius: 11px; outline: none; color: #634b57; background: #fff; transition: border-color 150ms ease, box-shadow 150ms ease; }
+    .field input, .field select { height: 36px; padding: 0 10px; font-size: 11px; }
+    .field textarea { min-height: 70px; resize: vertical; padding: 9px 10px; font-size: 11px; line-height: 1.6; }
+    .field input:focus, .field select:focus, .field textarea:focus { border-color: #ec9fbe; box-shadow: 0 0 0 3px rgba(239, 125, 168, 0.10); }
+    .field-help { color: #bb96a6; font-size: 9px; }
+    .editor-actions { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 7px; margin-top: 2px; }
+    .entry-editor-actions { margin: 0 0 12px; }
+    .small-button { height: 32px; padding: 0 12px; border: 0; border-radius: 10px; color: #fff; background: #ef83ab; font-size: 10px; font-weight: 850; }
+    .small-button.secondary { color: #b27892; background: #f5e6ed; }
+    .small-button.danger { color: #c24f7b; background: #ffe4ee; }
+    .editor-message { min-height: 15px; margin: 7px 0 0; color: #d35e91; font-size: 10px; }
+    .empty-state { display: none; padding: 22px 15px; border: 1px dashed #efd2df; border-radius: 15px; color: #b88b9e; background: #fffafd; font-size: 11px; line-height: 1.7; text-align: center; }
+    .empty-state.is-visible { display: block; }
+    .message-list { max-height: 540px; overflow-y: auto; padding: 2px 3px 3px 0; scrollbar-width: thin; scrollbar-color: #e7a9c2 #fff2f7; }
+    .message-list::-webkit-scrollbar { width: 7px; }
+    .message-list::-webkit-scrollbar-track { background: #fff2f7; border-radius: 99px; }
+    .message-list::-webkit-scrollbar-thumb { background: #e7a9c2; border-radius: 99px; }
+    .message-card { position: relative; max-width: 92%; padding: 10px 12px 11px; border: 1px solid #f0dce5; border-radius: 15px; background: #fffafd; box-shadow: 0 4px 12px rgba(214, 130, 162, 0.06); cursor: pointer; transition: border-color 150ms ease, box-shadow 150ms ease, transform 150ms ease; }
+    .message-card:hover, .message-card:focus-visible { border-color: #ebb5cc; box-shadow: 0 7px 16px rgba(214, 130, 162, 0.10); outline: none; transform: translateY(-1px); }
+    .message-card.is-user { justify-self: end; border-color: #f2bed3; background: linear-gradient(135deg, #fff0f7, #fff7ed); }
+    .message-card.is-cat { justify-self: start; }
+    .message-meta { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 4px; color: #bd91a4; font-size: 9px; font-weight: 850; }
+    .message-text { margin: 0; color: #67515c; font-size: 11px; line-height: 1.65; white-space: pre-wrap; word-break: break-word; }
+    .message-editor { padding: 11px; border: 1px solid #efbdd2; border-radius: 14px; background: #fffafd; }
+    .message-editor textarea { width: 100%; min-height: 74px; resize: vertical; padding: 9px 10px; border: 1px solid #efd8e3; border-radius: 10px; outline: none; color: #634b57; background: #fff; font-size: 11px; line-height: 1.6; }
+    .message-editor textarea:focus { border-color: #ec9fbe; box-shadow: 0 0 0 3px rgba(239, 125, 168, 0.10); }
+    .chat-form { display: grid; gap: 8px; margin-top: 14px; padding-top: 13px; border-top: 1px dashed #f0d8e3; }
+    .chat-form textarea { width: 100%; min-height: 74px; resize: vertical; padding: 10px; border: 1px solid #efd8e3; border-radius: 13px; outline: none; color: #634b57; background: #fffafd; font-size: 11px; line-height: 1.6; }
+    .chat-form textarea:focus { border-color: #ec9fbe; box-shadow: 0 0 0 3px rgba(239, 125, 168, 0.10); }
+    .chat-form button { justify-self: end; height: 34px; padding: 0 14px; border: 0; border-radius: 11px; color: #fff; background: linear-gradient(135deg, #ef78a5, #ffc16f); box-shadow: 0 7px 16px rgba(223, 103, 155, 0.16); font-size: 11px; font-weight: 850; }
+    .chat-form.is-history textarea { color: #b7a3ad; background: #f8f2f5; cursor: not-allowed; }
+    .chat-form.is-history button { background: #e7cbd8; box-shadow: none; cursor: not-allowed; }
+    .storage-notice { display: none; margin-bottom: 12px; padding: 9px 12px; border: 1px solid #f0d2df; border-radius: 12px; color: #bf628d; background: #fff4f8; font-size: 10px; }
+    .storage-notice.is-visible { display: block; }
+    @media (max-width: 900px) { .notebook-layout { grid-template-columns: 1fr; } .message-list { max-height: none; overflow-y: visible; } }
+    @media (max-width: 560px) {
+      .page-shell { width: min(100% - 18px, 1040px); padding-bottom: 28px; }
+      .page-header { align-items: flex-start; flex-direction: column; gap: 11px; }
+      .page-header h1 { font-size: 27px; }
+      .summary-pill { align-self: flex-start; }
+      .notebook-card { padding: 15px; border-radius: 19px; }
+      .card-heading { flex-direction: column; }
+      .primary-button { width: 100%; }
+      .editor-grid { grid-template-columns: 1fr; }
+      .field.full { grid-column: auto; }
+      .entry-card { grid-template-columns: auto minmax(0, 1fr) auto; padding: 12px; }
+      .entry-edit-hint { font-size: 13px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page-shell">
+    <div class="topbar">
+      <a class="back-link" href="index.html">← 返回打卡</a>
+      <span>哼，本喵只是顺便听你说说而已喵</span>
+    </div>
+    <header class="page-header">
+      <div>
+        <p class="eyebrow">PROGRESS DIARY</p>
+        <h1>哼，进步本</h1>
+        <p class="lead">才、才不是特意夸你，只是顺便看看你有没有偷偷变厉害。做题、跑步、好好吃饭，哪怕只往前一点，本喵也勉为其难记一下。</p>
+      </div>
+      <div class="summary-pill" aria-label="进步记录统计"><span>已记录</span><strong id="entryCount">0</strong><span>条进步</span></div>
+    </header>
+    <div id="storageNotice" class="storage-notice" role="status"></div>
+    <main class="notebook-layout">
+      <section class="notebook-card progress-panel" aria-label="进步记录">
+        <button id="addEntryButton" class="primary-button add-entry-top" type="button">+ 记录进步</button>
+        <div class="card-heading">
+          <div><span class="section-label">01 · 记录</span><h2>❀ 你的一点点前进，都值得被看见</h2><p>每一条都算数，哪怕只是今天比昨天多走了一步。</p></div>
+        </div>
+        <div id="categoryBar" class="category-bar" aria-label="进步分类"></div>
+        <form id="categoryForm" class="category-form" hidden>
+          <input id="categoryInput" type="text" maxlength="12" placeholder="新分类名称，例如：勇气">
+          <button type="submit">添加</button>
+          <button id="cancelCategoryButton" class="secondary" type="button">取消</button>
+        </form>
+        <div id="entryList" class="entry-list"></div>
+        <div id="entryEmpty" class="empty-state">还没有记录。今天只要有一点点向前，就写进这里吧。</div>
+      </section>
+      <section class="notebook-card confide-panel" aria-label="向猫娘倾诉">
+        <div class="card-heading">
+          <div><span class="section-label">02 · 陪你整理</span><h2>✾ 慢慢说，本喵会认真听</h2><p>开心、委屈、烦恼都可以说。本喵会边听边问，再认真帮你整理成进步卡片。</p></div>
+        </div>
+        <div class="chat-date-bar">
+          <div class="chat-date-copy"><span>回顾</span><strong id="chatDateLabel">今天</strong></div>
+          <div class="chat-date-controls">
+            <input id="chatDatePicker" type="text" readonly aria-label="选择回顾日期" aria-haspopup="dialog" aria-expanded="false">
+            <button id="chatTodayButton" type="button">回到今天</button>
+          </div>
+        </div>
+        <div id="chatHistoryNotice" class="chat-history-notice" hidden></div>
+        <div id="organizerCard" class="organizer-card">
+          <span class="organizer-icon" aria-hidden="true">✽</span>
+          <div><strong>正在认真整理</strong><p id="organizerSummary">本喵会认真听，也会帮你整理成进步卡片。</p></div>
+          <span id="organizerCount" class="organizer-count">0 条</span>
+        </div>
+        <div id="messageList" class="message-list"></div>
+        <div id="chatEmpty" class="empty-state is-visible">说吧，本喵会认真听。开心、委屈、烦恼都可以慢慢讲。</div>
+        <form id="chatForm" class="chat-form">
+          <textarea id="messageInput" maxlength="500" placeholder="慢慢说，今天发生了什么？"></textarea>
+          <button type="submit">发给猫娘</button>
+        </form>
+      </section>
+    </main>
+
+    <div id="chatDateModal" class="modal" hidden>
+      <div class="date-picker-card">
+        <div class="date-picker-deco">♡ 选择回顾日期 <span>♥</span></div>
+        <div class="date-picker-head">
+          <button id="chatPickerPrev" class="date-picker-nav" type="button" aria-label="上个月">‹</button>
+          <strong id="chatPickerTitle">2026年10月</strong>
+          <button id="chatPickerNext" class="date-picker-nav" type="button" aria-label="下个月">›</button>
+        </div>
+        <div class="date-picker-week"><span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span></div>
+        <div id="chatPickerDays" class="date-picker-days"></div>
+        <div class="date-picker-buttons">
+          <button id="chatPickerCancel" class="date-picker-cancel" type="button">取消</button>
+          <button id="chatPickerToday" class="date-picker-confirm" type="button">回到今天</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    (() => {
+      "use strict";
+
+      const NOTEBOOK_KEY = "progress-notebook:v1";
+      const CHAT_KEY = "progress-confide:v1";
+      const CHAT_STATE_KEY = "progress-confide-state:v1";
+      const DEFAULT_CATEGORIES = ["学习", "生活", "心情", "身体"];
+      const elements = {
+        storageNotice: document.getElementById("storageNotice"),
+        entryCount: document.getElementById("entryCount"),
+        addEntryButton: document.getElementById("addEntryButton"),
+        categoryBar: document.getElementById("categoryBar"),
+        categoryForm: document.getElementById("categoryForm"),
+        categoryInput: document.getElementById("categoryInput"),
+        cancelCategoryButton: document.getElementById("cancelCategoryButton"),
+        entryList: document.getElementById("entryList"),
+        entryEmpty: document.getElementById("entryEmpty"),
+        messageList: document.getElementById("messageList"),
+        chatDatePicker: document.getElementById("chatDatePicker"),
+        chatDateLabel: document.getElementById("chatDateLabel"),
+        chatTodayButton: document.getElementById("chatTodayButton"),
+        chatHistoryNotice: document.getElementById("chatHistoryNotice"),
+        chatDateModal: document.getElementById("chatDateModal"),
+        chatPickerPrev: document.getElementById("chatPickerPrev"),
+        chatPickerNext: document.getElementById("chatPickerNext"),
+        chatPickerTitle: document.getElementById("chatPickerTitle"),
+        chatPickerDays: document.getElementById("chatPickerDays"),
+        chatPickerCancel: document.getElementById("chatPickerCancel"),
+        chatPickerToday: document.getElementById("chatPickerToday"),
+        organizerSummary: document.getElementById("organizerSummary"),
+        organizerCount: document.getElementById("organizerCount"),
+        chatEmpty: document.getElementById("chatEmpty"),
+        chatForm: document.getElementById("chatForm"),
+        messageInput: document.getElementById("messageInput")
+      };
+
+      let storageAvailable = true;
+      let notebook = loadNotebook();
+      let chatArchive = loadChatArchive();
+      let currentDayKey = toDateInputValue(new Date());
+      let selectedChatDate = currentDayKey;
+      let messages = chatArchive[selectedChatDate] || [];
+      let chatState = loadChatState();
+      let editingEntryId = null;
+      let editingMessageId = null;
+      let activeCategory = "all";
+      let categoryEditorOpen = false;
+
+      function createId(prefix) {
+        if (window.crypto && typeof window.crypto.randomUUID === "function") {
+          return prefix + "-" + window.crypto.randomUUID();
+        }
+        return prefix + "-" + Date.now() + "-" + Math.random().toString(16).slice(2);
+      }
+
+      function loadJson(key, fallback) {
+        try {
+          const saved = localStorage.getItem(key);
+          return saved ? JSON.parse(saved) : fallback;
+        } catch (error) {
+          storageAvailable = false;
+          return fallback;
+        }
+      }
+
+      function saveJson(key, value) {
+        if (!storageAvailable) return;
+        try {
+          localStorage.setItem(key, JSON.stringify(value));
+        } catch (error) {
+          storageAvailable = false;
+          elements.storageNotice.textContent = "浏览器暂时无法保存数据，本次打开期间的记录仍可用。";
+          elements.storageNotice.classList.add("is-visible");
+        }
+      }
+
+      function toDateInputValue(date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const day = String(date.getDate()).padStart(2, "0");
+        return year + "-" + month + "-" + day;
+      }
+
+      function normalizeNotebook(value) {
+        const categories = Array.isArray(value && value.categories)
+          ? value.categories.filter((item) => typeof item === "string" && item.trim()).slice(0, 30)
+          : [];
+        const entries = Array.isArray(value && value.entries)
+          ? value.entries.filter((entry) => entry && typeof entry.title === "string").map((entry) => ({
+              id: typeof entry.id === "string" ? entry.id : createId("progress"),
+              title: entry.title.trim().slice(0, 40),
+              category: typeof entry.category === "string" && entry.category.trim() ? entry.category.trim().slice(0, 12) : "未分类",
+              content: typeof entry.content === "string" ? entry.content.slice(0, 800) : "",
+              date: typeof entry.date === "string" && entry.date ? entry.date : toDateInputValue(new Date()),
+              createdAt: Number(entry.createdAt) || Date.now(),
+              updatedAt: Number(entry.updatedAt) || Date.now(),
+              source: entry.source === "chat" ? "chat" : "manual"
+            })).filter((entry) => entry.title)
+          : [];
+        const allCategories = Array.from(new Set([...DEFAULT_CATEGORIES, ...categories, ...entries.map((entry) => entry.category).filter(Boolean)]));
+        return { categories: allCategories, entries };
+      }
+
+      function loadNotebook() {
+        return normalizeNotebook(loadJson(NOTEBOOK_KEY, { categories: DEFAULT_CATEGORIES, entries: [] }));
+      }
+
+      function normalizeMessage(message) {
+        if (!message || typeof message.text !== "string") return null;
+        return {
+          id: typeof message.id === "string" ? message.id : createId("message"),
+          role: message.role === "user" ? "user" : "cat",
+          text: message.text.slice(0, 500),
+          createdAt: Number(message.createdAt) || Date.now(),
+          edited: Boolean(message.edited)
+        };
+      }
+
+      function loadChatArchive() {
+        const value = loadJson(CHAT_KEY, {});
+        if (Array.isArray(value)) {
+          const archive = {};
+          value.map(normalizeMessage).filter(Boolean).forEach((message) => {
+            const dateKey = toDateInputValue(new Date(message.createdAt));
+            if (!archive[dateKey]) archive[dateKey] = [];
+            archive[dateKey].push(message);
+          });
+          return archive;
+        }
+        if (!value || typeof value !== "object") return {};
+        const archive = {};
+        Object.entries(value).forEach(([dateKey, list]) => {
+          if (!Array.isArray(list)) return;
+          const normalized = list.map(normalizeMessage).filter((message) => message && message.text.trim());
+          if (normalized.length) archive[dateKey] = normalized;
+        });
+        return archive;
+      }
+
+      function persistNotebook() { saveJson(NOTEBOOK_KEY, notebook); }
+      function persistMessages() {
+        if (messages.length) chatArchive[selectedChatDate] = messages.slice();
+        else delete chatArchive[selectedChatDate];
+        saveJson(CHAT_KEY, chatArchive);
+      }
+
+      function updateChatDateControls() {
+        const isToday = selectedChatDate === currentDayKey;
+        if (elements.chatDatePicker) {
+          elements.chatDatePicker.value = isToday ? "今天" : "回顾";
+          elements.chatDatePicker.title = isToday ? "选择日期" : "正在回顾 " + formatDate(selectedChatDate);
+        }
+        if (elements.chatDateLabel) elements.chatDateLabel.textContent = isToday ? "今天" : formatDate(selectedChatDate);
+        if (elements.chatTodayButton) elements.chatTodayButton.disabled = isToday;
+        if (elements.chatHistoryNotice) {
+          elements.chatHistoryNotice.hidden = isToday;
+          elements.chatHistoryNotice.textContent = "正在回顾 " + formatDate(selectedChatDate) + " 的对话；今天会重新开始记录。";
+        }
+        if (elements.chatForm) elements.chatForm.classList.toggle("is-history", !isToday);
+        elements.messageInput.disabled = !isToday;
+        elements.messageInput.placeholder = isToday ? "慢慢说，今天发生了什么？" : "这是过去的记录，回到今天才能继续聊";
+        elements.chatEmpty.textContent = isToday
+          ? "说吧，本喵会认真听。开心、委屈、烦恼都可以慢慢讲。"
+          : "这一天没有和猫娘说过话，或者记录已经清空。";
+      }
+
+      function switchChatDate(dateKey) {
+        const nextDate = dateKey || currentDayKey;
+        persistMessages();
+        selectedChatDate = nextDate;
+        messages = chatArchive[selectedChatDate] || [];
+        editingMessageId = null;
+        renderMessages();
+        updateChatDateControls();
+      }
+
+      function refreshChatDay() {
+        const nextDay = toDateInputValue(new Date());
+        if (nextDay === currentDayKey) return;
+        currentDayKey = nextDay;
+        switchChatDate(nextDay);
+      }
+
+      const chatCalendarState = { year: new Date().getFullYear(), month: new Date().getMonth() };
+
+      function openChatCalendar() {
+        const selected = new Date(selectedChatDate + "T00:00:00");
+        chatCalendarState.year = selected.getFullYear();
+        chatCalendarState.month = selected.getMonth();
+        elements.chatDateModal.hidden = false;
+        elements.chatDatePicker.setAttribute("aria-expanded", "true");
+        renderChatCalendar();
+        requestAnimationFrame(() => elements.chatPickerDays.querySelector(".is-selected")?.focus());
+      }
+
+      function closeChatCalendar() {
+        elements.chatDateModal.hidden = true;
+        elements.chatDatePicker.setAttribute("aria-expanded", "false");
+      }
+
+      function renderChatCalendar() {
+        const { year, month } = chatCalendarState;
+        elements.chatPickerTitle.textContent = year + "年" + (month + 1) + "月";
+        elements.chatPickerDays.replaceChildren();
+        const firstDay = new Date(year, month, 1).getDay();
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+        const daysInPrevMonth = new Date(year, month, 0).getDate();
+
+        for (let cell = 0; cell < 42; cell += 1) {
+          let dateValue;
+          let muted = false;
+          if (cell < firstDay) {
+            dateValue = new Date(year, month - 1, daysInPrevMonth - firstDay + cell + 1);
+            muted = true;
+          } else if (cell >= firstDay + daysInMonth) {
+            dateValue = new Date(year, month + 1, cell - firstDay - daysInMonth + 1);
+            muted = true;
+          } else {
+            dateValue = new Date(year, month, cell - firstDay + 1);
+          }
+
+          const dateKey = toDateInputValue(dateValue);
+          const button = document.createElement("button");
+          button.type = "button";
+          button.className = "date-picker-day";
+          button.textContent = String(dateValue.getDate());
+          if (muted) button.classList.add("is-muted");
+          if ((chatArchive[dateKey] || []).length) button.classList.add("has-records");
+          if (dateKey === selectedChatDate) button.classList.add("is-selected");
+          if (dateKey > currentDayKey) {
+            button.classList.add("is-future");
+            button.disabled = true;
+          }
+          button.setAttribute("aria-label", year + "年" + (month + 1) + "月" + dateValue.getDate() + "日" + ((chatArchive[dateKey] || []).length ? "，有记录" : ""));
+          button.addEventListener("click", () => {
+            switchChatDate(dateKey);
+            closeChatCalendar();
+          });
+          elements.chatPickerDays.append(button);
+        }
+      }
+      function loadChatState() {
+        const value = loadJson(CHAT_STATE_KEY, {});
+        return {
+          pendingEntryId: typeof value.pendingEntryId === "string" ? value.pendingEntryId : null,
+          pendingKind: typeof value.pendingKind === "string" ? value.pendingKind : null,
+          lastUserText: typeof value.lastUserText === "string" ? value.lastUserText : "",
+          lastTopic: typeof value.lastTopic === "string" ? value.lastTopic : "",
+          turns: Number(value.turns) || 0,
+          recentLines: Array.isArray(value.recentLines) ? value.recentLines.filter((item) => typeof item === "string").slice(0, 12) : []
+        };
+      }
+      function persistChatState() { saveJson(CHAT_STATE_KEY, chatState); }
+      function pickCatLine(pool) {
+        const lines = pool.filter(Boolean);
+        if (!lines.length) return "";
+        const recent = chatState.recentLines || [];
+        const fresh = lines.filter((line) => !recent.includes(line));
+        const candidates = fresh.length ? fresh : lines;
+        const choice = candidates[Math.floor(Math.random() * candidates.length)];
+        chatState.recentLines = [choice, ...recent].slice(0, Math.min(12, Math.max(6, lines.length)));
+        persistChatState();
+        return choice;
+      }
+      function updateOrganizerCard() {
+        if (!elements.organizerSummary || !elements.organizerCount) return;
+        const chatEntries = notebook.entries
+          .filter((entry) => entry.source === "chat")
+          .sort((a, b) => b.updatedAt - a.updatedAt);
+        elements.organizerCount.textContent = chatEntries.length + " 条";
+        if (chatEntries.length) {
+          const latest = chatEntries[0];
+          elements.organizerSummary.textContent = "已经认真整理好啦：" + latest.title + " · " + latest.category;
+        } else if (chatState.lastTopic) {
+          elements.organizerSummary.textContent = "正在认真整理：" + chatState.lastTopic;
+        } else {
+          elements.organizerSummary.textContent = "本喵会认真听，也会帮你整理成进步卡片。";
+        }
+      }
+      function formatDate(value) {
+        const date = new Date(value + "T00:00:00");
+        if (Number.isNaN(date.getTime())) return value;
+        return (date.getMonth() + 1) + "月" + date.getDate() + "日";
+      }
+      function formatTime(timestamp) {
+        const date = new Date(timestamp);
+        return String(date.getHours()).padStart(2, "0") + ":" + String(date.getMinutes()).padStart(2, "0");
+      }
+      function getFilteredEntries() {
+        return notebook.entries.filter((entry) => activeCategory === "all" || entry.category === activeCategory).sort((a, b) => b.updatedAt - a.updatedAt);
+      }
+      function categoryCount(category) { return notebook.entries.filter((entry) => entry.category === category).length; }
+      function renderSummary() { elements.entryCount.textContent = String(notebook.entries.length); }
+      function renderCategories() {
+        elements.categoryBar.replaceChildren();
+        const allChip = document.createElement("button");
+        allChip.type = "button";
+        allChip.className = "category-chip" + (activeCategory === "all" ? " is-active" : "");
+        allChip.textContent = "全部 · " + notebook.entries.length;
+        allChip.addEventListener("click", () => { activeCategory = "all"; renderCategories(); renderEntries(); });
+        elements.categoryBar.append(allChip);
+
+        notebook.categories.forEach((category) => {
+          const chip = document.createElement("button");
+          chip.type = "button";
+          chip.className = "category-chip" + (activeCategory === category ? " is-active" : "");
+          chip.textContent = category + " · " + categoryCount(category);
+          chip.addEventListener("click", () => { activeCategory = category; renderCategories(); renderEntries(); });
+          elements.categoryBar.append(chip);
+        });
+
+        const addCategory = document.createElement("button");
+        addCategory.type = "button";
+        addCategory.className = "category-add";
+        addCategory.textContent = "+ 新分类";
+        addCategory.addEventListener("click", () => {
+          categoryEditorOpen = true;
+          elements.categoryForm.hidden = false;
+          elements.categoryInput.focus();
+        });
+        elements.categoryBar.append(addCategory);
+        elements.categoryForm.hidden = !categoryEditorOpen;
+      }
+
+      function createEntryCard(entry) {
+        const card = document.createElement("article");
+        card.className = "entry-card";
+        card.tabIndex = 0;
+        card.setAttribute("role", "button");
+        card.setAttribute("aria-label", "编辑进步：" + entry.title);
+        card.dataset.id = entry.id;
+
+        const flowerTheme = {
+          "学习": { icon: "✿", color: "#dfa02a" },
+          "生活": { icon: "❀", color: "#e86fa4" },
+          "心情": { icon: "✾", color: "#c36bc1" },
+          "身体": { icon: "✽", color: "#e58c50" },
+          "人际关系": { icon: "❁", color: "#a982d8" }
+        }[entry.category] || { icon: "✾", color: "#d978a5" };
+        const mark = document.createElement("span");
+        mark.className = "entry-mark";
+        mark.textContent = flowerTheme.icon;
+        mark.style.color = flowerTheme.color;
+        mark.setAttribute("aria-hidden", "true");
+        const main = document.createElement("div");
+        main.className = "entry-main";
+        const meta = document.createElement("div");
+        meta.className = "entry-meta";
+        const category = document.createElement("span");
+        category.className = "entry-category";
+        category.textContent = entry.category;
+        const date = document.createElement("span");
+        date.className = "entry-date";
+        date.textContent = formatDate(entry.date);
+        meta.append(category, date);
+        const title = document.createElement("h3");
+        title.className = "entry-title";
+        title.textContent = entry.title;
+        const content = document.createElement("p");
+        content.className = "entry-content";
+        content.textContent = entry.content || "没有写详细内容，但这一步已经算数。";
+        const hint = document.createElement("span");
+        hint.className = "entry-edit-hint";
+        hint.textContent = "✎";
+        hint.setAttribute("aria-hidden", "true");
+        main.append(meta, title, content);
+        card.append(mark, main, hint);
+
+        const openEditor = () => {
+          editingEntryId = entry.id;
+          editingMessageId = null;
+          renderEntries();
+        };
+        card.addEventListener("click", openEditor);
+        card.addEventListener("keydown", (event) => {
+          if (event.key === "Enter" || event.key === " ") { event.preventDefault(); openEditor(); }
+        });
+        return card;
+      }
+
+      function createEntryEditor(entry) {
+        const form = document.createElement("form");
+        form.className = "entry-editor";
+        form.dataset.id = entry ? entry.id : "new";
+        const grid = document.createElement("div");
+        grid.className = "editor-grid";
+        grid.innerHTML = [
+          '<label class="field full"><span>进步标题</span><input class="editor-title" type="text" maxlength="40" required placeholder="今天进步了什么？"><small class="field-help">一句话就够，不用写得很正式。</small></label>',
+          '<label class="field"><span>分类</span><select class="editor-category"></select></label>',
+          '<label class="field"><span>日期</span><input class="editor-date" type="date"></label>',
+          '<label class="field full"><span>详细记录（可选）</span><textarea class="editor-content" maxlength="800" placeholder="写下过程、感受，或者给自己留一句夸奖。"></textarea></label>'
+        ].join("");
+        const select = grid.querySelector(".editor-category");
+        notebook.categories.forEach((category) => {
+          const option = document.createElement("option");
+          option.value = category;
+          option.textContent = category;
+          select.append(option);
+        });
+        if (entry && entry.category && !notebook.categories.includes(entry.category)) {
+          const option = document.createElement("option");
+          option.value = entry.category;
+          option.textContent = entry.category;
+          select.append(option);
+        }
+        const newCategory = document.createElement("label");
+        newCategory.className = "field full";
+        newCategory.innerHTML = '<span>新分类（可选）</span><input class="editor-new-category" type="text" maxlength="12" placeholder="想新建分类就填这里，例如：勇气">';
+        grid.append(newCategory);
+        const titleInput = grid.querySelector(".editor-title");
+        titleInput.value = entry ? entry.title : "";
+        select.value = entry ? entry.category : (activeCategory !== "all" ? activeCategory : notebook.categories[0] || "未分类");
+        grid.querySelector(".editor-date").value = entry ? entry.date : toDateInputValue(new Date());
+        grid.querySelector(".editor-content").value = entry ? entry.content : "";
+        const message = document.createElement("p");
+        message.className = "editor-message";
+        const actions = document.createElement("div");
+        actions.className = "editor-actions entry-editor-actions";
+        const save = document.createElement("button");
+        save.type = "submit";
+        save.className = "small-button";
+        save.textContent = entry ? "保存修改" : "记下来";
+        const cancel = document.createElement("button");
+        cancel.type = "button";
+        cancel.className = "small-button secondary";
+        cancel.textContent = "取消";
+        cancel.addEventListener("click", () => { editingEntryId = null; renderEntries(); });
+        actions.append(save, cancel);
+        if (entry) {
+          const remove = document.createElement("button");
+          remove.type = "button";
+          remove.className = "small-button danger";
+          remove.textContent = "删除";
+          remove.addEventListener("click", () => {
+            if (!window.confirm("要把这条进步删掉吗？")) return;
+            notebook.entries = notebook.entries.filter((item) => item.id !== entry.id);
+            editingEntryId = null;
+            persistNotebook();
+            renderAll();
+          });
+          actions.append(remove);
+        }
+        form.append(actions, grid, message);
+        form.addEventListener("submit", (event) => {
+          event.preventDefault();
+          const title = titleInput.value.trim();
+          const newCategoryValue = grid.querySelector(".editor-new-category").value.trim();
+          let category = (newCategoryValue || select.value || "未分类").slice(0, 12);
+          if (!title) { message.textContent = "至少写一句今天进步了什么喵。"; titleInput.focus(); return; }
+          if (!notebook.categories.includes(category)) notebook.categories.push(category);
+          const date = grid.querySelector(".editor-date").value || toDateInputValue(new Date());
+          const content = grid.querySelector(".editor-content").value.trim();
+          if (entry) {
+            entry.title = title; entry.category = category; entry.date = date; entry.content = content; entry.updatedAt = Date.now();
+          } else {
+            notebook.entries.push({ id: createId("progress"), title, category, date, content, source: "manual", createdAt: Date.now(), updatedAt: Date.now() });
+          }
+          editingEntryId = null;
+          activeCategory = "all";
+          persistNotebook();
+          renderAll();
+        });
+        requestAnimationFrame(() => titleInput.focus());
+        return form;
+      }
+      function renderEntries() {
+        elements.entryList.replaceChildren();
+        const entries = getFilteredEntries();
+        if (editingEntryId === "new") elements.entryList.append(createEntryEditor(null));
+        entries.forEach((entry) => {
+          elements.entryList.append(editingEntryId === entry.id ? createEntryEditor(entry) : createEntryCard(entry));
+        });
+        elements.entryEmpty.classList.toggle("is-visible", entries.length === 0 && editingEntryId !== "new");
+      }
+
+      function renderAll() {
+        renderSummary();
+        renderCategories();
+        renderEntries();
+        updateOrganizerCard();
+      }
+
+      function createMessageCard(message) {
+        const card = document.createElement("article");
+        card.className = "message-card " + (message.role === "user" ? "is-user" : "is-cat");
+        card.tabIndex = 0;
+        card.setAttribute("role", "button");
+        card.setAttribute("aria-label", "编辑这条" + (message.role === "user" ? "倾诉" : "猫娘回复"));
+        card.dataset.id = message.id;
+        const meta = document.createElement("div");
+        meta.className = "message-meta";
+        const who = document.createElement("span");
+        who.textContent = message.role === "user" ? "你" : "猫娘";
+        const time = document.createElement("span");
+        time.textContent = formatTime(message.createdAt) + (message.edited ? " · 已编辑" : "") + "  ✎";
+        meta.append(who, time);
+        const text = document.createElement("p");
+        text.className = "message-text";
+        text.textContent = message.text;
+        card.append(meta, text);
+        const openEditor = () => {
+          editingMessageId = message.id;
+          editingEntryId = null;
+          renderMessages();
+        };
+        card.addEventListener("click", openEditor);
+        card.addEventListener("keydown", (event) => {
+          if (event.key === "Enter" || event.key === " ") { event.preventDefault(); openEditor(); }
+        });
+        return card;
+      }
+
+      function createMessageEditor(message) {
+        const form = document.createElement("form");
+        form.className = "message-editor";
+        form.dataset.id = message.id;
+        const textarea = document.createElement("textarea");
+        textarea.maxLength = 500;
+        textarea.value = message.text;
+        const actions = document.createElement("div");
+        actions.className = "editor-actions";
+        const save = document.createElement("button");
+        save.type = "submit";
+        save.className = "small-button";
+        save.textContent = "保存";
+        const cancel = document.createElement("button");
+        cancel.type = "button";
+        cancel.className = "small-button secondary";
+        cancel.textContent = "取消";
+        const remove = document.createElement("button");
+        remove.type = "button";
+        remove.className = "small-button danger";
+        remove.textContent = "删除";
+        actions.append(save, cancel, remove);
+        form.append(textarea, actions);
+        form.addEventListener("submit", (event) => {
+          event.preventDefault();
+          const nextText = textarea.value.trim();
+          if (!nextText) { textarea.focus(); return; }
+          message.text = nextText.slice(0, 500);
+          message.edited = true;
+          editingMessageId = null;
+          persistMessages();
+          renderMessages();
+        });
+        cancel.addEventListener("click", () => { editingMessageId = null; renderMessages(); });
+        remove.addEventListener("click", () => {
+          messages = messages.filter((item) => item.id !== message.id);
+          editingMessageId = null;
+          persistMessages();
+          renderMessages();
+        });
+        requestAnimationFrame(() => textarea.focus());
+        return form;
+      }
+
+      function renderMessages() {
+        elements.messageList.replaceChildren();
+        messages.forEach((message) => {
+          elements.messageList.append(editingMessageId === message.id ? createMessageEditor(message) : createMessageCard(message));
+        });
+        elements.chatEmpty.classList.toggle("is-visible", messages.length === 0);
+        updateChatDateControls();
+        requestAnimationFrame(() => {
+          if (messages.length && !editingMessageId) elements.messageList.scrollTop = elements.messageList.scrollHeight;
+        });
+      }
+
+      function hashText(value) {
+        let hash = 2166136261;
+        for (const char of value) {
+          hash ^= char.charCodeAt(0);
+          hash = Math.imul(hash, 16777619);
+        }
+        return hash >>> 0;
+      }
+
+      function isQuestion(text) {
+        return /[?？]|怎么|为什么|能不能|可不可以|怎么办|如何|你觉得|是不是|该不该/.test(text);
+      }
+
+      function inferCategory(text) {
+        const rules = [
+          { category: "学习", keys: ["学习", "考试", "单词", "复习", "论文", "作业", "课", "阅读", "听力", "写作", "背", "题", "面试", "项目"] },
+          { category: "身体", keys: ["跑步", "运动", "健身", "早睡", "早起", "吃饭", "喝水", "身体", "步", "锻炼", "拉伸"] },
+          { category: "心情", keys: ["心情", "开心", "难过", "焦虑", "紧张", "害怕", "委屈", "生气", "情绪", "压力", "烦"] },
+          { category: "人际关系", keys: ["朋友", "家人", "同学", "老师", "聊天", "沟通", "关系", "社交", "队友"] }
+        ];
+        const matched = rules.find((rule) => rule.keys.some((key) => text.includes(key)));
+        return matched ? matched.category : "生活";
+      }
+
+      function hasProgressSignal(text) {
+        const clean = text.replace(/\s/g, "");
+        if (!clean) return false;
+        if (isQuestion(clean) && !/(我|本喵)?(做了|完成|坚持|学会|开始|解决|做到|终于|成功)/.test(clean)) return false;
+        const completionPattern = /(做|写|画|弄|学|背|跑|读|看|交|提交|整理|复习|练习).{0,4}(完|好|了)/;
+        return ["完成", "做完", "做了", "做好", "写完", "写好", "画完", "画好", "搞定", "搞完", "弄完", "办好", "通过", "考过", "终于", "学会", "坚持", "开始", "解决", "做到", "第一次", "背完", "跑完", "早起", "主动", "尝试", "克服", "没有放弃", "整理", "复习", "练习", "去了", "投了"].some((key) => clean.includes(key)) || completionPattern.test(clean);
+      }
+
+      function makeProgressTitle(text, category) {
+        const clauses = text.trim().replace(/[。！？!?][\s\S]*$/, "").split(/[，,；;]/).map((item) => item.trim()).filter(Boolean);
+        let title = clauses.find((item) => item.length >= 4) || clauses[0] || text.trim();
+        ["今天", "刚刚", "昨天", "我", "其实", "终于", "已经", "还是", "感觉", "就是", "有", "是的"].forEach((prefix) => {
+          while (title.startsWith(prefix)) title = title.slice(prefix.length);
+        });
+        if (title.length > 26) title = title.slice(0, 26) + "…";
+        return title || category + "的一点进步";
+      }
+
+      function followUpQuestion(category) {
+        const pools = {
+          "学习": [
+            "哼，这次你具体是怎么做到的？别误会，我只是想帮你记清楚一点喵。",
+            "中间哪一步最费劲？先说好，本喵才不是心疼你。",
+            "这次和你以前比，哪里不一样？说清楚一点，我才好勉强认可你。",
+            "想给这次进步留一句什么总结？本喵只是顺便问问，才没有很在意。"
+          ],
+          "身体": [
+            "身体有哪里感觉变好了？哼，别硬撑，轻松一点也算。",
+            "你当时是怎么坚持下来的？本喵只是有点好奇，才不是担心你。",
+            "做完之后有没有轻松一点？可别误会，我不是在关心你。",
+            "这件事让你更了解自己的什么？说出来，本喵勉为其难听听。"
+          ],
+          "心情": [
+            "做完之后你的心情有什么变化？哼，只是记录需要而已。",
+            "当时最让你在意的是哪一点？本喵顺便听一下，不代表很在意喵。",
+            "你是怎么让自己继续往前走的？这点我倒是有点好奇。",
+            "如果给现在的自己留一句话，你想写什么？别误会，只是顺便问。"
+          ],
+          "人际关系": [
+            "你当时是怎么迈出第一步的？哼，我只是想知道细节。",
+            "对方后来是什么反应？本喵才不是替你紧张。",
+            "这件事里你最在意的是什么？说清楚一点，我才好帮你记。",
+            "下次再遇到类似情况，你希望自己怎么做？本喵只是随口问问。"
+          ]
+        };
+        const pool = pools[category] || [
+          "这件事里最不容易的是哪一步？哼，本喵只是顺便帮你整理。",
+          "完成之后你的第一反应是什么？我才没有很想知道。",
+          "这个过程中你发现了自己的什么？说出来，我勉强听着。",
+          "如果给这次进步打分，你会记下哪一点？别误会，这只是记录需要。"
+        ];
+        return pickCatLine(pool);
+      }
+
+      function acknowledgement(text) {
+        if (/面试|上台|考试|去学校/.test(text)) {
+          return pickCatLine([
+            "哼，敢去面对就已经算你有点本事了。别误会，我只是顺便夸一句。",
+            "去都去了，就别先想着输赢。本喵只是觉得你这次没躲，勉强算勇敢。",
+            "这种事情本喵可不会替你紧张。……好吧，就一点点。"
+          ]);
+        }
+        if (/终于|完成|做完|画完|做好|搞定|写完|背完|弄完/.test(text)) {
+          return pickCatLine([
+            "终于做完了呀。哼，本喵才没有一直等你汇报，只是顺便看见了。",
+            "做完就做完嘛，别这么得意。……不过，确实还不错。",
+            "算你厉害。可别因为这一句话就翘尾巴喵。",
+            "总算搞定了。本喵只是觉得你今天还勉强算靠谱。"
+          ]);
+        }
+        if (/坚持|没有放弃/.test(text)) {
+          return pickCatLine([
+            "能坚持下来就算你厉害。别误会，本喵才不会因此特别佩服你。",
+            "没放弃啊。哼，这种事我早就知道你能做到，只是没说而已。",
+            "过程不太好看也没关系，反正你最后还是往前走了。"
+          ]);
+        }
+        if (/第一次|主动|尝试/.test(text)) {
+          return pickCatLine([
+            "第一次就敢迈出去，哼，本喵勉强承认你有点勇气。",
+            "主动去做这种事，确实不容易。别看我，我只是随口一说。",
+            "试了就算赢一点。本喵可不是在鼓励你，只是实话实说。"
+          ]);
+        }
+        return pickCatLine([
+          "嗯，本喵听懂了。这个变化虽然不算惊天动地，但确实是你做出来的。",
+          "哼，听起来你今天还算没有完全偷懒。那就先记下来吧。",
+          "别急着说这没什么。本喵既然听见了，就勉强算它一个进步。"
+        ]);
+      }
+
+      function answerQuestion(text) {
+        if (/怎么|如何/.test(text)) {
+          return pickCatLine([
+            "先别想着一次做完。挑最小的一步开始，本喵只是顺便给你指个方向。",
+            "方法可以慢慢试，但你得先动一下。哼，别指望本喵替你做。",
+            "把问题拆小一点，先做最容易开始的那一步。这样总比原地发愁强。"
+          ]);
+        }
+        if (/为什么/.test(text)) {
+          return pickCatLine([
+            "有些事本来就没有标准答案。先把你在意的部分说清楚，本喵再勉强陪你找线索。",
+            "别急着给自己找唯一原因。感受是真的，答案可以慢慢找。",
+            "为什么不一定现在就有答案。先说清楚你在意什么，比硬猜有用。"
+          ]);
+        }
+        if (/能不能|可以|该不该/.test(text)) {
+          return pickCatLine([
+            "能不能做到不是现在最该担心的。先看你愿不愿意试一次，哼。",
+            "可以不可以，本喵说了不算。你想不想做，才是重点喵。",
+            "别一直问该不该。先试最小的一步，做完再决定。"
+          ]);
+        }
+        if (/你觉得|是不是/.test(text)) {
+          return pickCatLine([
+            "本喵觉得你的感受不是假的。别急着否定自己，先承认它。",
+            "是不是，你心里其实有答案。哼，本喵只是顺便点破而已。",
+            "我不会替你做决定，但我会站在你这边。就这一次，别误会。"
+          ]);
+        }
+        return pickCatLine([
+          "这个问题先别急着一次想通。你想记录事情本身，还是当时的心情？本喵都能顺便整理。",
+          "先慢慢说。本喵只是路过听一下，才不是特别想知道。",
+          "别把问题全堆在一起。挑最在意的一点写下来，剩下的慢慢来喵。"
+        ]);
+      }
+
+      function createChatEntry(text, category, contentText = text) {
+        const now = Date.now();
+        const entry = {
+          id: createId("progress"),
+          title: makeProgressTitle(text, category),
+          category,
+          date: toDateInputValue(new Date()),
+          content: contentText.trim().slice(0, 800),
+          source: "chat",
+          createdAt: now,
+          updatedAt: now
+        };
+        notebook.entries.push(entry);
+        if (!notebook.categories.includes(category)) notebook.categories.push(category);
+        persistNotebook();
+        renderAll();
+        return entry;
+      }
+
+      function appendChatDetail(entry, text) {
+        entry.content = (entry.content + "\n补充：" + text.trim()).slice(0, 800);
+        entry.updatedAt = Date.now();
+        persistNotebook();
+        renderAll();
+      }
+
+      function addMessage(role, text) {
+        messages.push({ id: createId("message"), role, text: text.slice(0, 500), createdAt: Date.now(), edited: false });
+        persistMessages();
+        renderMessages();
+      }
+
+      function queueCatMessages(texts) {
+        let delay = 260;
+        texts.filter(Boolean).forEach((text, index) => {
+          window.setTimeout(() => addMessage("cat", text), delay);
+          delay += 520 + index * 140;
+        });
+      }
+
+      function respondToChat(text) {
+        const category = inferCategory(text);
+        const progress = hasProgressSignal(text);
+        const question = isQuestion(text);
+        const negativeEmotion = ["难过", "失败", "委屈", "焦虑", "紧张", "害怕", "烦", "生气", "哭", "后悔"].some((key) => text.includes(key));
+        const currentEntry = chatState.pendingEntryId ? notebook.entries.find((entry) => entry.id === chatState.pendingEntryId) : null;
+
+        if (chatState.pendingKind === "progress-check") {
+          const negativeResponse = /没有|不是|不算|没做|不想/.test(text) && !/但是|但|还是/.test(text);
+          const positiveResponse = !negativeResponse && /有|是|算|做了|完成|尝试|努力|可以|就是/.test(text);
+          if (positiveResponse) {
+            const combined = chatState.lastUserText ? chatState.lastUserText + "；" + text : text;
+            const entry = createChatEntry(text, category, combined);
+            chatState.pendingEntryId = entry.id;
+            chatState.pendingKind = "progress-detail";
+            chatState.lastUserText = combined;
+            chatState.lastTopic = entry.title;
+            chatState.turns = 1;
+            persistChatState();
+            queueCatMessages([
+              pickCatLine([
+                "哼，那就算你做到了。别误会，我只是顺便承认一下。",
+                "好吧，你愿意承认自己做了什么，本喵就勉强记一笔。",
+                "算你有点本事。先别得意，后面还得继续喵。"
+              ]),
+              pickCatLine([
+                "记下来了：【" + entry.title + "】。哼，只是顺手整理，不代表我很在意。",
+                "好吧，本喵先把它写成【" + entry.title + "】。别误会，是卡片需要才这么认真。",
+                "【" + entry.title + "】已经记下了。可别以为本喵特意为你排版。"
+              ]),
+              followUpQuestion(entry.category, text, 1)
+            ]);
+            return;
+          }
+          chatState.pendingKind = null;
+          chatState.lastUserText = "";
+          persistChatState();
+          queueCatMessages([
+            pickCatLine([
+              "哼，不想说就别说。本喵才没有很想知道。",
+              "行吧，先不勉强你。等你愿意了再讲也可以。",
+              "不承认就算了。反正本喵只是顺便问问。"
+            ]),
+            pickCatLine([
+              "等你想起来有哪一步是自己做到的，再来告诉本喵。才不是特意给你留位置。",
+              "本喵先听着。什么时候想继续，再叫我就好喵。",
+              "那就先放一会儿。哼，别误会，我可没有一直等你。"
+            ])
+          ]);
+          return;
+        }
+
+        if (currentEntry && chatState.pendingKind === "progress-detail") {
+          if (question) {
+            chatState.turns += 1;
+            persistChatState();
+            queueCatMessages([answerQuestion(text), followUpQuestion(currentEntry.category, text, chatState.turns)]);
+            return;
+          }
+          const continuation = /因为|后来|其实|感觉|最难|然后|就是|当时|为了|补充|还有|所以|最后|但是|不过/.test(text);
+          const startsNewTopic = !continuation && (/(今天|刚刚|昨天|另外|还有|我现在|我刚刚|我今天)/.test(text) || text.length > 24 || (progress && text.length > 18));
+          if (!startsNewTopic) {
+            appendChatDetail(currentEntry, text);
+            chatState.turns += 1;
+            persistChatState();
+            queueCatMessages([
+              pickCatLine([
+                "补充好了，我把内容更新到【" + currentEntry.title + "】里了。别误会，我只是懒得重新建卡。",
+                "嗯，记进【" + currentEntry.title + "】了。哼，这次算你交代得清楚。",
+                "好吧，细节补上了。本喵只是顺手，才不是特别认真听你说喵。"
+              ]),
+              followUpQuestion(currentEntry.category, text, chatState.turns)
+            ]);
+            return;
+          }
+          chatState.pendingEntryId = null;
+          chatState.pendingKind = null;
+          chatState.lastUserText = "";
+          persistChatState();
+        }
+
+        if (progress) {
+          const entry = createChatEntry(text, category);
+          chatState.pendingEntryId = entry.id;
+          chatState.pendingKind = "progress-detail";
+          chatState.lastUserText = text;
+          chatState.lastTopic = entry.title;
+          chatState.turns = 1;
+          persistChatState();
+          queueCatMessages([
+            acknowledgement(text),
+            pickCatLine([
+              "我先把它整理成【" + entry.title + "】。分类暂放「" + entry.category + "」，哼，只是顺手帮你排一下。",
+              "记好了：【" + entry.title + "】，放在「" + entry.category + "」。别误会，这可不是特意夸奖。",
+              "好吧，本喵勉为其难写成【" + entry.title + "】。分类先记「" + entry.category + "」喵。"
+            ]),
+            followUpQuestion(entry.category, text, 1)
+          ]);
+          return;
+        }
+
+        if (question) {
+          queueCatMessages([
+            answerQuestion(text),
+            pickCatLine([
+              "要不要顺手记成今天的进步？哼，本喵只是顺便建议一下。",
+              "如果这件事有你能做到的部分，也可以告诉本喵。才不是非要你记录。",
+              "先别急着走。你可以再说一点，本喵只是勉强有空听。"
+            ])
+          ]);
+          return;
+        }
+
+        chatState.pendingKind = "progress-check";
+        chatState.lastUserText = text;
+        chatState.turns = 0;
+        persistChatState();
+        if (negativeEmotion) {
+          queueCatMessages([
+            pickCatLine([
+              "哼，本喵听见了。难过和累都是真的，先不用急着装作没事。",
+              "烦就烦一会儿吧。别误会，我只是没有催你立刻振作。",
+              "这种事不用马上想通。本喵只是顺便陪你停一下。"
+            ]),
+            pickCatLine([
+              "这件事里有没有哪一步是你已经做到的？哪怕只是去面对、没有逃走，也算喵。",
+              "那你有没有为自己做过一点点什么？哼，别急着说没有。",
+              "先想想最难的时候你是怎么撑过来的。本喵只是顺便问问。"
+            ])
+          ]);
+        } else {
+          queueCatMessages([
+            pickCatLine([
+              "嗯，本喵在听。你愿意多讲一点吗？才不是因为我很好奇。",
+              "然后呢？哼，我只是顺便把话听完整。",
+              "你说吧，本喵又没有很想知道，只是正好有空。"
+            ]),
+            pickCatLine([
+              "如果这件事里有一点点变化，或者你做了什么，我也会帮你整理成卡片喵。",
+              "哪怕只是一个很小的动作，也可以告诉我。本喵只是顺手记录而已。",
+              "有没有哪一步让你觉得比之前好一点？别误会，只是方便整理。"
+            ])
+          ]);
+        }
+      }
+
+      elements.addEntryButton.addEventListener("click", () => {
+        editingEntryId = "new";
+        editingMessageId = null;
+        renderAll();
+        requestAnimationFrame(() => document.querySelector(".editor-title")?.focus());
+      });
+
+      elements.categoryForm.addEventListener("submit", (event) => {
+        event.preventDefault();
+        const name = elements.categoryInput.value.trim().slice(0, 12);
+        if (!name) { elements.categoryInput.focus(); return; }
+        if (!notebook.categories.includes(name)) notebook.categories.push(name);
+        activeCategory = name;
+        categoryEditorOpen = false;
+        elements.categoryForm.reset();
+        persistNotebook();
+        renderCategories();
+        renderEntries();
+      });
+
+      elements.cancelCategoryButton.addEventListener("click", () => {
+        categoryEditorOpen = false;
+        elements.categoryForm.reset();
+        renderCategories();
+      });
+
+      elements.chatForm.addEventListener("submit", (event) => {
+        event.preventDefault();
+        if (selectedChatDate !== currentDayKey) return;
+        const text = elements.messageInput.value.trim();
+        if (!text) { elements.messageInput.focus(); return; }
+        elements.messageInput.value = "";
+        addMessage("user", text);
+        respondToChat(text);
+      });
+
+      elements.chatDatePicker.addEventListener("click", openChatCalendar);
+      elements.chatDatePicker.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          openChatCalendar();
+        }
+      });
+      elements.chatTodayButton.addEventListener("click", () => switchChatDate(currentDayKey));
+      elements.chatPickerPrev.addEventListener("click", () => {
+        chatCalendarState.month -= 1;
+        if (chatCalendarState.month < 0) { chatCalendarState.month = 11; chatCalendarState.year -= 1; }
+        renderChatCalendar();
+      });
+      elements.chatPickerNext.addEventListener("click", () => {
+        chatCalendarState.month += 1;
+        if (chatCalendarState.month > 11) { chatCalendarState.month = 0; chatCalendarState.year += 1; }
+        renderChatCalendar();
+      });
+      elements.chatPickerCancel.addEventListener("click", closeChatCalendar);
+      elements.chatPickerToday.addEventListener("click", () => {
+        switchChatDate(currentDayKey);
+        closeChatCalendar();
+      });
+      elements.chatDateModal.addEventListener("click", (event) => {
+        if (event.target === elements.chatDateModal) closeChatCalendar();
+      });
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape" && !elements.chatDateModal.hidden) closeChatCalendar();
+      });
+      window.addEventListener("focus", refreshChatDay);
+      document.addEventListener("visibilitychange", () => {
+        if (!document.hidden) refreshChatDay();
+      });
+
+      if (!storageAvailable) {
+        elements.storageNotice.textContent = "浏览器暂时无法保存数据，本次打开期间的记录仍可用。";
+        elements.storageNotice.classList.add("is-visible");
+      }
+
+      function notifyParentHeight() {
+        if (window.parent === window) return;
+        window.parent.postMessage({ type: "progress-height", height: document.documentElement.scrollHeight }, "*");
+      }
+
+      if ("ResizeObserver" in window) {
+        new ResizeObserver(notifyParentHeight).observe(document.body);
+      }
+      window.addEventListener("load", notifyParentHeight);
+
+      renderAll();
+      renderMessages();
+      notifyParentHeight();
+    })();
+  </script>
+</body>
+</html>

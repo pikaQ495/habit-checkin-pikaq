@@ -1949,6 +1949,19 @@
       }
     }
 
+    #progressView {
+      min-height: 70vh;
+    }
+
+    #progressFrame {
+      display: block;
+      width: 100%;
+      min-height: 0;
+      height: calc(100vh - 52px);
+      border: 0;
+      background: transparent;
+    }
+
     @media (prefers-reduced-motion: reduce) {
       *,
       *::before,
@@ -1981,6 +1994,10 @@
         <button class="sidebar-link" type="button" data-view="countdown">
           <span class="sidebar-icon">⏳</span>
           <span>倒计时和时间轴</span>
+        </button>
+        <button class="sidebar-link" type="button" data-view="progress">
+          <span class="sidebar-icon">✿</span>
+          <span>进步本</span>
         </button>
       </nav>
       <div class="sidebar-note">今天也一起加油喵 ♥</div>
@@ -2044,6 +2061,9 @@
       </div>
       <div id="countdownView" class="app-view">
         <iframe id="countdownFrame" data-src="countdown.html?embedded=1" title="倒计时和时间轴"></iframe>
+      </div>
+      <div id="progressView" class="app-view">
+        <iframe id="progressFrame" data-src="progress.html?embedded=1" title="进步本"></iframe>
       </div>
     </main>
   </div>
@@ -3346,6 +3366,8 @@
       const tasksView = document.getElementById("tasksView");
       const countdownView = document.getElementById("countdownView");
       const countdownFrame = document.getElementById("countdownFrame");
+      const progressView = document.getElementById("progressView");
+      const progressFrame = document.getElementById("progressFrame");
 
       function setSidebarOpen(open) {
         appSidebar.classList.toggle("is-open", open);
@@ -3364,9 +3386,20 @@
         }
       }
 
+      function resizeProgressFrame() {
+        try {
+          const doc = progressFrame.contentDocument;
+          if (!doc) return;
+          progressFrame.style.height = `${Math.max(900, doc.documentElement.scrollHeight + 20)}px`;
+        } catch (error) {
+          progressFrame.style.height = "1200px";
+        }
+      }
+
       function switchView(viewName) {
         tasksView.classList.toggle("is-active", viewName === "tasks");
         countdownView.classList.toggle("is-active", viewName === "countdown");
+        progressView.classList.toggle("is-active", viewName === "progress");
         viewButtons.forEach((button) => {
           button.classList.toggle("is-active", button.dataset.view === viewName);
         });
@@ -3374,6 +3407,9 @@
         if (viewName === "countdown") {
           if (!countdownFrame.src) countdownFrame.src = countdownFrame.dataset.src;
           requestAnimationFrame(resizeCountdownFrame);
+        } else if (viewName === "progress") {
+          if (!progressFrame.src) progressFrame.src = progressFrame.dataset.src;
+          requestAnimationFrame(resizeProgressFrame);
         }
 
         window.scrollTo({ top: 0, behavior: "smooth" });
@@ -3396,7 +3432,14 @@
         if (window.innerWidth > 900) setSidebarOpen(false);
       });
 
+      window.addEventListener("message", (event) => {
+        if (event.source !== progressFrame.contentWindow || !event.data || event.data.type !== "progress-height") return;
+        const height = Number(event.data.height);
+        if (Number.isFinite(height)) progressFrame.style.height = `${Math.max(900, height + 20)}px`;
+      });
+
       countdownFrame.addEventListener("load", resizeCountdownFrame);
+      progressFrame.addEventListener("load", resizeProgressFrame);
       render();
     })();
   </script>
